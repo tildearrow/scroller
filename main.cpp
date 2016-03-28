@@ -214,8 +214,8 @@ static int inthread(void* ptr) {
 }
 
 int main(int argc, char** argv) {
-  gx=0; gy=0; gw=1920; gh=32; fc=0; counter=4; speed=3;
-  printf("usage: %s FONT SIZE\n",argv[0]);
+  gx=0; gy=0; gw=atoi(argv[3]); gh=32; fc=0; counter=4; speed=3;
+  printf("usage: %s FONT SIZE WIDTH\n",argv[0]);
   // prepare colors
   for (int I=0; I<256; I++) {
     colorsR[I]=(I>231)?((I-232)*11): // gray-scale

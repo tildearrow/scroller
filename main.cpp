@@ -59,9 +59,9 @@ SDL_Texture* textt;
 SDL_Thread* thread;
 TTF_Font* font;
 SDL_Rect reeect;
-//SDL_Color color={255,255,255,255};
+SDL_Color color={255,255,255,255};
 
-int gputchar(int x, int y, int c, bool actuallyrender, SDL_Color color) {
+int gputchar(int x, int y, int c, bool actuallyrender) {
     texts=TTF_RenderGlyph_Blended(font,c,color);
     textt=SDL_CreateTextureFromSurface(r,texts);
     reeect.x=x;
@@ -270,7 +270,11 @@ int main(int argc, char** argv) {
           chars[chars.size()-1].f.g=poppedformat.g;
           chars[chars.size()-1].f.b=poppedformat.b;
           // i know, i know...
-	  counter=gputchar(0,0,popped,false,{255,255,255,255})-1;
+          color.r=255;
+          color.g=255;
+          color.b=255;
+          color.a=255;
+	  counter=gputchar(0,0,popped,false)-1;
 	  if (charq.size()==0) {
 	    counter=16;
 	  }
@@ -288,7 +292,11 @@ int main(int argc, char** argv) {
     }
     for (std::vector<gchar>::iterator i=chars.begin(); i!=chars.end(); i++) {
       // i know, i know...
-      gputchar(i->x,0,i->character,true,{i->f.r,i->f.g,i->f.b,255});
+      color.r=i->f.r;
+      color.g=i->f.g;
+      color.b=i->f.b;
+      color.a=255;
+      gputchar(i->x,0,i->character,true);
       if (i->x<-128) { // hehe
 	chars.erase(i);
       }

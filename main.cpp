@@ -247,7 +247,11 @@ int main(int argc, char** argv) {
   colorsG[2]=187; // dark green is more neutral
   colorsB[4]=187; // blue too
   colorsB[6]=202; // dark cyan has higher blue
-  
+
+  curformat.r=255;
+  curformat.g=255;
+  curformat.b=255;
+
   SDL_Init(SDL_INIT_VIDEO);
   TTF_Init();
   font=TTF_OpenFont(argv[1],atoi(argv[2]));

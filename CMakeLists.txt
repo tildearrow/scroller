@@ -1,4 +1,8 @@
 project(scroller)
+if(APPLE)
+  include_directories(/usr/local/include/)
+  link_directories(/usr/local/lib/)
+endif(APPLE)
 add_executable(scroller main.cpp)
 target_link_libraries(scroller SDL2 SDL2_ttf)
 install(TARGETS scroller RUNTIME DESTINATION bin)

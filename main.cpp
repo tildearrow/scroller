@@ -233,8 +233,13 @@ static int inthread(void* ptr) {
 }
 
 int main(int argc, char** argv) {
+  if (argc<4) {
+    printf("usage: %s FONT SIZE WIDTH\n",argv[0]);
+    return 1;
+  }
   willquit=false; gx=0; gy=0; gw=atoi(argv[3]); gh=32; fc=0; counter=4; speed=3;
-  printf("usage: %s FONT SIZE WIDTH\n",argv[0]);
+  // width check
+  if (gw<1) {printf("i'm sorry, but invalid width.\n"); return 1;}
   // prepare colors
   for (int I=0; I<256; I++) {
     colorsR[I]=(I>231)?((I-232)*11): // gray-scale
@@ -273,7 +278,14 @@ int main(int argc, char** argv) {
 
   SDL_Init(SDL_INIT_VIDEO);
   TTF_Init();
+  if (atoi(argv[2])<1) {
+    printf("i'm sorry but invalid size.\n");
+  }
   font=TTF_OpenFont(argv[1],atoi(argv[2]));
+  if (!font) {
+    printf("i'm sorry but this happened while loading font: %s\n",TTF_GetError());
+    return 1;
+  }
   window=SDL_CreateWindow("scroller",gx,gy,gw,gh,0);
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
   thread=SDL_CreateThread(inthread,"inthread",NULL);

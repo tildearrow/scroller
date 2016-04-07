@@ -30,7 +30,7 @@ const unsigned char defaultcolors[3]={255,255,255};
 struct format {
   unsigned char r, g, b;
   bool bold, italic, underline, stroke, conceal, shake, negative;
-  int blink;
+  int blink, ci;
 };
 
 struct gchar {
@@ -60,6 +60,7 @@ SDL_Thread* thread;
 TTF_Font* font;
 SDL_Rect reeect;
 SDL_Color color={255,255,255,255};
+bool willquit;
 
 int gputchar(int x, int y, int c, bool actuallyrender) {
     texts=TTF_RenderGlyph_Blended(font,c,color);
@@ -132,11 +133,24 @@ static int inthread(void* ptr) {
                   curformat.stroke=0; curformat.conceal=0;
                   curformat.shake=0; curformat.italic=0;
                   curformat.blink=0; curformat.negative=0;
+                  curformat.ci=15;
                   break;
                 case 1:
                   curformat.bold=1;
+                  if (curformat.ci<8) {
+                    curformat.ci+=8;
+                  }
+                  curformat.r=colorsR[curformat.ci];
+                  curformat.g=colorsG[curformat.ci];
+                  curformat.b=colorsB[curformat.ci];
                   break;
                 case 2:
+                  if (curformat.ci>=8 && curformat.ci<16) {
+                    curformat.ci-=8;
+                  }
+                  curformat.r=colorsR[curformat.ci];
+                  curformat.g=colorsG[curformat.ci];
+                  curformat.b=colorsB[curformat.ci];
                   curformat.bold=0;
                   break;
                 case 3:
@@ -164,6 +178,12 @@ static int inthread(void* ptr) {
                   curformat.underline=2;
                   break;
                 case 22:
+                  if (curformat.ci>=8 && curformat.ci<16) {
+                    curformat.ci-=8;
+                  }
+                  curformat.r=colorsR[curformat.ci];
+                  curformat.g=colorsG[curformat.ci];
+                  curformat.b=colorsB[curformat.ci];
                   curformat.bold=0;
                   break;
                 case 23:
@@ -189,14 +209,13 @@ static int inthread(void* ptr) {
                   break;
                 case 30: case 31: case 32: case 33: case 34: case 35: case 36: case 37:
                   if (curformat.bold) {
-                    curformat.r=colorsR[8+(formatlist[ok]-30)];
-                    curformat.g=colorsG[8+(formatlist[ok]-30)];
-                    curformat.b=colorsB[8+(formatlist[ok]-30)];
+                    curformat.ci=8+(formatlist[ok]-30);
                   } else {
-                    curformat.r=colorsR[formatlist[ok]-30];
-                    curformat.g=colorsG[formatlist[ok]-30];
-                    curformat.b=colorsB[formatlist[ok]-30];
+                    curformat.ci=(formatlist[ok]-30);
                   }
+                  curformat.r=colorsR[curformat.ci];
+                  curformat.g=colorsG[curformat.ci];
+                  curformat.b=colorsB[curformat.ci];
                   break;
                 default:
                   printf("new format, %d\n",formatlist[ok]);
@@ -214,7 +233,7 @@ static int inthread(void* ptr) {
 }
 
 int main(int argc, char** argv) {
-  gx=0; gy=0; gw=atoi(argv[3]); gh=32; fc=0; counter=4; speed=3;
+  willquit=false; gx=0; gy=0; gw=atoi(argv[3]); gh=32; fc=0; counter=4; speed=3;
   printf("usage: %s FONT SIZE WIDTH\n",argv[0]);
   // prepare colors
   for (int I=0; I<256; I++) {
@@ -259,6 +278,12 @@ int main(int argc, char** argv) {
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
   thread=SDL_CreateThread(inthread,"inthread",NULL);
   while (true) {
+    SDL_Event ev;
+    while (SDL_PollEvent(&ev)) {
+      if (ev.type==SDL_QUIT) {
+        willquit=true;
+      }
+    }
     SDL_RenderClear(r);
     for (int i=0; i<fmax(1,speed); i++) {
       if (counter==0) {
@@ -311,6 +336,7 @@ int main(int argc, char** argv) {
     ++fc;
     pc2=pc1;
     pc1=SDL_GetTicks();
+    if (willquit) {break;}
   }
   return 0;
 }

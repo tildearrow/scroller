@@ -235,6 +235,9 @@ static int inthread(void* ptr) {
 int main(int argc, char** argv) {
   if (argc<4) {
     printf("usage: %s FONT SIZE WIDTH\n",argv[0]);
+    if (argc<2) {
+      printf("Creates a window which scrolls text from standard input.\n\nFONT is any font file.\nSIZE is a number.\nWIDTH is the window width in pixels.\n\nWritten by tildearrow, licensed under MIT License.\n");
+    }
     return 1;
   }
   willquit=false; gx=0; gy=0; gw=atoi(argv[3]); gh=32; fc=0; counter=4; speed=3;

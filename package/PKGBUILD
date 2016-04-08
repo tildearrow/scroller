@@ -1,0 +1,19 @@
+# Maintainer: tildearrow <acc12345acc@gmail.com>
+pkgname=scroller
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="scrolltext fed by stdin"
+arch=("any")
+url="https://github.com/tildearrow/scroller"
+license=("MIT")
+depends=("sdl2" "sdl2_ttf")
+makedepends=("cmake")
+
+build() {
+  cmake ../..
+  make
+}
+
+package() {
+  DESTDIR="$pkgdir" make install
+}

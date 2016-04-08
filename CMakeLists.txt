@@ -1,3 +1,4 @@
+cmake_minimum_required(2.8)
 project(scroller)
 if(APPLE)
   include_directories(/usr/local/include/)

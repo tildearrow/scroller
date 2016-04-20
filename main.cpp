@@ -24,8 +24,10 @@
 #include <queue>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include "utf8_decode.c"
 
 const unsigned char defaultcolors[3]={255,255,255};
+unsigned char utf8seq[8];
 
 struct format {
   unsigned char r, g, b;
@@ -92,8 +94,8 @@ static int inthread(void* ptr) {
   bool getout;
   getout=false;
   int curindex;
-  char chaar;
-  char chaaar;
+  unsigned char chaar;
+  unsigned char chaaar;
   std::vector<int> formatlist;
   while (true) {
     chaar=getchar();
@@ -231,12 +233,76 @@ static int inthread(void* ptr) {
                 default:
                   printf("new format, %d\n",formatlist[ok]);
                   break;
-              }
             }
-	}
+          }
+        }
       } else {
-	charq.push(chaar);
-	formatq.push(curformat);
+        if (chaar>0x7f) {
+          if (chaar<0xe0) {
+            // UTF-8
+            utf8seq[0]=chaar;
+            chaaar=getchar();
+            utf8seq[1]=chaaar;
+          } else if (chaar<0xf0) {
+            utf8seq[0]=chaar;
+            chaaar=getchar();
+            utf8seq[1]=chaaar;
+            chaaar=getchar();
+            utf8seq[2]=chaaar;
+          } else if (chaar<0xf8) {
+            utf8seq[0]=chaar;
+            chaaar=getchar();
+            utf8seq[1]=chaaar;
+            chaaar=getchar();
+            utf8seq[2]=chaaar;
+            chaaar=getchar();
+            utf8seq[3]=chaaar;
+          } else if (chaar<0xfc) {
+            utf8seq[0]=chaar;
+            chaaar=getchar();
+            utf8seq[1]=chaaar;
+            chaaar=getchar();
+            utf8seq[2]=chaaar;
+            chaaar=getchar();
+            utf8seq[3]=chaaar;
+            chaaar=getchar();
+            utf8seq[4]=chaaar;
+          } else if (chaar<0xfd) {
+            utf8seq[0]=chaar;
+            chaaar=getchar();
+            utf8seq[1]=chaaar;
+            chaaar=getchar();
+            utf8seq[2]=chaaar;
+            chaaar=getchar();
+            utf8seq[3]=chaaar;
+            chaaar=getchar();
+            utf8seq[4]=chaaar;
+            chaaar=getchar();
+            utf8seq[5]=chaaar;
+          } else if (chaar<0xff) {
+            utf8seq[0]=chaar;
+            chaaar=getchar();
+            utf8seq[1]=chaaar;
+            chaaar=getchar();
+            utf8seq[2]=chaaar;
+            chaaar=getchar();
+            utf8seq[3]=chaaar;
+            chaaar=getchar();
+            utf8seq[4]=chaaar;
+            chaaar=getchar();
+            utf8seq[5]=chaaar;
+            chaaar=getchar();
+            utf8seq[6]=chaaar;
+          } else {
+            printf("what are you doing?\n");
+          }
+          utf8_decode_init(utf8seq,8);
+          charq.push(utf8_decode_next());
+          formatq.push(curformat);
+        } else {
+          charq.push(chaar);
+          formatq.push(curformat);
+        }
       }
     }
   }

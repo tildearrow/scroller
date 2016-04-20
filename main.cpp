@@ -244,14 +244,14 @@ static int inthread(void* ptr) {
 }
 
 int main(int argc, char** argv) {
-  if (argc<4) {
-    printf("usage: %s FONT SIZE WIDTH\n",argv[0]);
+  if (argc<5) {
+    printf("usage: %s FONT SIZE WIDTH HEIGHT\n",argv[0]);
     if (argc<2) {
-      printf("Creates a window which scrolls text from standard input.\n\nFONT is any font file.\nSIZE is a number.\nWIDTH is the window width in pixels.\n\nWritten by tildearrow, licensed under MIT License.\n");
+      printf("Creates a window which scrolls text from standard input.\n\nFONT is any font file.\nSIZE is a number.\nWIDTH is the window width in pixels.\nHEIGHT is the window height in pixels.\n\nWritten by tildearrow, licensed under MIT License.\n");
     }
     return 1;
   }
-  willquit=false; gx=0; gy=0; gw=atoi(argv[3]); gh=32; fc=0; counter=4; speed=3;
+  willquit=false; gx=0; gy=0; gw=atoi(argv[3]); gh=atoi(argv[4]); fc=0; counter=4; speed=3;
   // width check
   if (gw<1) {printf("i'm sorry, but invalid width.\n"); return 1;}
   // prepare colors

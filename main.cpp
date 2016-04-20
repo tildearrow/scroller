@@ -50,6 +50,7 @@ std::queue<format> formatq;
 int gx, gy, gw, gh;
 int pc1, pc2;
 int fc;
+int fi;
 int counter;
 int popped;
 format poppedformat;
@@ -94,7 +95,7 @@ static int inthread(void* ptr) {
   bool getout;
   getout=false;
   int curindex;
-  unsigned char chaar;
+  int chaar;
   unsigned char chaaar;
   std::vector<int> formatlist;
   while (true) {
@@ -299,6 +300,8 @@ static int inthread(void* ptr) {
           utf8_decode_init(utf8seq,8);
           charq.push(utf8_decode_next());
           formatq.push(curformat);
+        } else if (chaar==EOF) {
+          break;
         } else {
           charq.push(chaar);
           formatq.push(curformat);
@@ -311,13 +314,14 @@ static int inthread(void* ptr) {
 
 int main(int argc, char** argv) {
   if (argc<5) {
-    printf("usage: %s FONT SIZE WIDTH HEIGHT\n",argv[0]);
+    printf("usage: %s FONT SIZE WIDTH HEIGHT [INDEX]\n",argv[0]);
     if (argc<2) {
-      printf("Creates a window which scrolls text from standard input.\n\nFONT is any font file.\nSIZE is a number.\nWIDTH is the window width in pixels.\nHEIGHT is the window height in pixels.\n\nWritten by tildearrow, licensed under MIT License.\n");
+      printf("Creates a window which scrolls text from standard input.\n\nFONT is any font file.\nSIZE is a number.\nWIDTH is the window width in pixels.\nHEIGHT is the window height in pixels.\nINDEX is a font index, in case of font files with multiple fonts.\n\nWritten by tildearrow, licensed under MIT License.\n");
     }
     return 1;
   }
   willquit=false; gx=0; gy=0; gw=atoi(argv[3]); gh=atoi(argv[4]); fc=0; counter=4; speed=3;
+  if (argc>5) {fi=atoi(argv[5]);} else {fi=0;}
   // width check
   if (gw<1) {printf("i'm sorry, but invalid width.\n"); return 1;}
   // prepare colors
@@ -361,7 +365,7 @@ int main(int argc, char** argv) {
   if (atoi(argv[2])<1) {
     printf("i'm sorry but invalid size.\n");
   }
-  font=TTF_OpenFont(argv[1],atoi(argv[2]));
+  font=TTF_OpenFontIndex(argv[1],atoi(argv[2]),fi);
   if (!font) {
     printf("i'm sorry but this happened while loading font: %s\n",TTF_GetError());
     return 1;

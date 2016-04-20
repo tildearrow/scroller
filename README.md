@@ -1,10 +1,10 @@
 # scroller
-scrolltext fed by stdin
+scroller is a simple application which creates a window displaying scrolled text. it is supposed to be run from a terminal/command line, and often, piped.
 
 ## Dependencies
-SDL2 and SDL_ttf
+- SDL2 and SDL_ttf
+- CMake for building
 
-CMake for building
 ## Compiling
 ### Linux
 ```

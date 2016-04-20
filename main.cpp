@@ -33,6 +33,10 @@ struct format {
   int blink, ci;
 };
 
+SDL_Texture** texcache;
+bool* texcached;
+SDL_Rect* texcacher;
+
 struct gchar {
   int character, x;
   format f;
@@ -63,18 +67,25 @@ SDL_Color color={255,255,255,255};
 bool willquit;
 
 int gputchar(int x, int y, int c, bool actuallyrender) {
+  int minx, maxx, advance;
+  if (!texcached[c]) {
+    texcached[c]=true;
     texts=TTF_RenderGlyph_Blended(font,c,color);
-    textt=SDL_CreateTextureFromSurface(r,texts);
-    reeect.x=x;
-    reeect.y=y;
-    reeect.w=texts->clip_rect.w;
-    reeect.h=texts->clip_rect.h;
-    if (actuallyrender) {
-      SDL_RenderCopy(r,textt,&texts->clip_rect,&reeect);
-    }
+    texcache[c]=SDL_CreateTextureFromSurface(r,texts);
+    texcacher[c]=texts->clip_rect;
     SDL_FreeSurface(texts);
-    SDL_DestroyTexture(textt);
-    return reeect.w;
+  }
+  reeect.x=x;
+  reeect.y=y;
+  reeect.w=texcacher[c].w;
+  reeect.h=texcacher[c].h;
+  if (actuallyrender) {
+    SDL_SetTextureColorMod(texcache[c],color.r,color.g,color.b);
+    SDL_RenderCopy(r,texcache[c],&texcacher[c],&reeect);
+    SDL_SetTextureColorMod(texcache[c],255,255,255);
+  }
+  TTF_GlyphMetrics(font,c,&minx,&maxx,NULL,NULL,&advance);
+  return advance;
 }
 
 static int inthread(void* ptr) {
@@ -292,6 +303,13 @@ int main(int argc, char** argv) {
   window=SDL_CreateWindow("scroller",gx,gy,gw,gh,0);
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
   thread=SDL_CreateThread(inthread,"inthread",NULL);
+  // and create the character cache
+  texcache=new SDL_Texture*[1048576]; // i'm sorry, this is needed
+  texcached=new bool[1048576];
+  texcacher=new SDL_Rect[1048576];
+  for (int i=0; i<1048576; i++) {
+    texcached[i]=false;
+  }
   while (true) {
     SDL_Event ev;
     while (SDL_PollEvent(&ev)) {

@@ -26,6 +26,9 @@
 #include <SDL2/SDL_ttf.h>
 #include "utf8_decode.c"
 
+#define min(x,y) (((x)<(y))?(x):(y))
+#define max(x,y) (((x)>(y))?(x):(y))
+
 const unsigned char defaultcolors[3]={255,255,255};
 unsigned char utf8seq[8];
 
@@ -51,10 +54,11 @@ int gx, gy, gw, gh;
 int pc1, pc2;
 int fc;
 int fi;
+int nlsep;
 int counter;
 int popped;
 format poppedformat;
-int speed;
+int speed, minspeed, minspeedchange, speedchange, maxspeed;
 int colorsR[256];
 int colorsG[256];
 int colorsB[256];
@@ -314,16 +318,19 @@ static int inthread(void* ptr) {
 
 int main(int argc, char** argv) {
   if (argc<5) {
-    printf("usage: %s FONT SIZE WIDTH HEIGHT [INDEX]\n",argv[0]);
+    printf("usage: %s FONT SIZE WIDTH HEIGHT [INDEX] [NEWLINESEP] [MINSPEED] [MINSPEEDCHANGE] [SPEEDCHANGE] [MAXSPEED]\n",argv[0]);
     if (argc<2) {
-      printf("Creates a window which scrolls text from standard input.\n\nFONT is any font file.\nSIZE is a number.\nWIDTH is the window width in pixels.\nHEIGHT is the window height in pixels.\nINDEX is a font index, in case of font files with multiple fonts.\n\nWritten by tildearrow, licensed under MIT License.\n");
+      printf("Creates a window which scrolls text from standard input.\n\nFONT is any font file.\nSIZE is a number.\nWIDTH is the window width in pixels.\nHEIGHT is the window height in pixels.\nINDEX is a font index, in case of font files with multiple fonts.\nNEWLINESEP sets the number of pixels between newlines.\nMINSPEED sets the scroller's minimum speed, and it is constant if SPEEDCHANGE is not defined.\nMINSPEEDCHANGE defines the minimum characters-in-queue count to change speed.\nSPEEDCHANGE defines how many character per speed increase in 1 pixel.\nMAXSPEED defines maximum speed reachable by scroller.\n\nWritten by tildearrow, licensed under MIT License.\n");
     }
     return 1;
   }
   willquit=false; gx=0; gy=0; gw=atoi(argv[3]); gh=atoi(argv[4]); fc=0; counter=4; speed=3;
+  minspeed=1; minspeedchange=1; speedchange=3; maxspeed=0;
+  nlsep=16;
   if (argc>5) {fi=atoi(argv[5]);} else {fi=0;}
   // width check
   if (gw<1) {printf("i'm sorry, but invalid width.\n"); return 1;}
+  
   // prepare colors
   for (int I=0; I<256; I++) {
     colorsR[I]=(I>231)?((I-232)*11): // gray-scale
@@ -388,10 +395,12 @@ int main(int argc, char** argv) {
       }
     }
     SDL_RenderClear(r);
+    speed=(counter==0 && charq.size()<1)?(0):(minspeed+max(0,(speedchange==0)?(0):((charq.size())/speedchange)));
+    printf("%d\n",speed);
     for (int i=0; i<fmax(1,speed); i++) {
       if (counter==0) {
 	if (charq.size()>0) {
-	  speed=3;
+	  //speed=minspeed+(fmax(0,(speedchange==0)?(0):((charq.size()-minspeedchange)/speedchange)));
 	  popped=charq.front();
 	  charq.pop();
           poppedformat=formatq.front();
@@ -410,9 +419,9 @@ int main(int argc, char** argv) {
 	  if (charq.size()==0) {
 	    counter=16;
 	  }
-	} else {
+	}/* else {
 	  speed=0;
-	}
+	}*/
       } else {
 	counter--;
       }

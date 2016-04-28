@@ -325,8 +325,13 @@ int main(int argc, char** argv) {
     return 1;
   }
   willquit=false; gx=0; gy=0; gw=atoi(argv[3]); gh=atoi(argv[4]); fc=0; counter=4; speed=3;
-  minspeed=1; minspeedchange=1; speedchange=3; maxspeed=0;
+  minspeed=3; minspeedchange=20; speedchange=20; maxspeed=0;
+  if (argc>7) {minspeed=atoi(argv[7]);}
+  if (argc>8) {minspeedchange=atoi(argv[8]);}
+  if (argc>9) {speedchange=atoi(argv[9]);}
+  if (argc>10) {maxspeed=atoi(argv[10]);}
   nlsep=16;
+  if (argc>6) {nlsep=atoi(argv[6]);}
   if (argc>5) {fi=atoi(argv[5]);} else {fi=0;}
   // width check
   if (gw<1) {printf("i'm sorry, but invalid width.\n"); return 1;}
@@ -396,11 +401,9 @@ int main(int argc, char** argv) {
     }
     SDL_RenderClear(r);
     speed=(counter==0 && charq.size()<1)?(0):(minspeed+max(0,(speedchange==0)?(0):((charq.size())/speedchange)));
-    printf("%d\n",speed);
     for (int i=0; i<fmax(1,speed); i++) {
       if (counter==0) {
 	if (charq.size()>0) {
-	  //speed=minspeed+(fmax(0,(speedchange==0)?(0):((charq.size()-minspeedchange)/speedchange)));
 	  popped=charq.front();
 	  charq.pop();
           poppedformat=formatq.front();
@@ -417,11 +420,9 @@ int main(int argc, char** argv) {
           color.a=255;
 	  counter=gputchar(0,0,popped,false)-1;
 	  if (charq.size()==0) {
-	    counter=16;
+	    counter=nlsep;
 	  }
-	}/* else {
-	  speed=0;
-	}*/
+	}
       } else {
 	counter--;
       }

@@ -19,6 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#define VERSION "1.2"
+
 #include <stdio.h>
 #include <vector>
 #include <queue>
@@ -42,6 +44,12 @@ SDL_Texture** texcache;
 bool* texcached;
 SDL_Rect* texcacher;
 
+#ifdef WIN32
+#define SWITCH_CHAR '/'
+#else
+#define SWITCH_CHAR '-'
+#endif
+
 struct gchar {
   int character, x;
   format f;
@@ -51,12 +59,14 @@ std::vector<gchar> chars;
 std::queue<int> charq;
 std::queue<format> formatq;
 int gx, gy, gw, gh;
+int fontsize;
 int pc1, pc2;
 int fc;
 int fi;
 int nlsep;
 int counter;
 int popped;
+int fontarg;
 format poppedformat;
 int speed, minspeed, minspeedchange, speedchange, maxspeed;
 int colorsR[256];
@@ -72,6 +82,8 @@ TTF_Font* font;
 SDL_Rect reeect;
 SDL_Color color={255,255,255,255};
 bool willquit;
+char* geometryinfo;
+char* geomX, *geomY, *geomW, *geomH;
 
 int gputchar(int x, int y, int c, bool actuallyrender) {
   int minx, maxx, advance;
@@ -316,15 +328,149 @@ static int inthread(void* ptr) {
   return 0;
 }
 
+void usage(const char* programname) {
+  printf("\
+usage: %s [OPTIONS]... FONTFILE [FONT2FILE]...\n\
+creates a window which scrolls text being fed to stdin.\n\
+best used with a pipe.\n\
+\n\
+OPTIONS:\n\
+  %cfs FONTSIZE            defines a custom font size.\n\
+                          if this is not defined, a value of 20 will be used\n\
+			  as default.\n\
+  %cns SIZE                defines a custom line separator size.\n\
+                          if this is not defined, a value of 16 will be used.\n\
+  %cgeometry GEOMETRY      defines window size and placement.\n\
+                          it follows the same format as used in X base\n\
+                          applications:\n\
+                             WIDTHxHEIGHT+X+Y\n\
+  %cindex INDEX,[INDEX]... selects font indexes on font collections (.ttc,\n\
+	                  .fon, etc.).\n\
+  %cms SPEED               minimum speed\n\
+                          default is 3\n\
+  %cmsc SPEED              minimum amount of characters in queue in order to\n\
+                          begin speeding up\n\
+                          default is 20\n\
+  %csc SPEED               amount of characters in queue to speed up by +1\n\
+                          default is 20\n\
+  %cMs SPEED               maximum speed\n\
+                          default is infinity (0)\n\
+  %cnostop                 continue scrolling even if there is no text left\n\
+  %cimageN FILE            load an image for usage with escape code ^[[200+Nm\n\
+  %cdefcol R,G,B           default color\n\
+  %csolid  [R,G,B]         no transparency\n\
+  %cv                      show version\n\
+\n\
+written by tildearrow, licensed under MIT License.\
+\n",programname,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,
+SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR);
+}
+
+void about() {
+  printf("scroller v%s, copyright 2016 tildearrow.\n\
+using SDL v%d.%d.%d.\n\
+\n\
+Permission is hereby granted, free of charge, to any person obtaining a copy\n\
+of this software and associated documentation files (the \"Software\"), to deal\n\
+in the Software without restriction, including without limitation the rights\n\
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n\
+copies of the Software, and to permit persons to whom the Software is\n\
+furnished to do so, subject to the following conditions:\n\
+\n\
+The above copyright notice and this permission notice shall be included in all\n\
+copies or substantial portions of the Software.\n\
+\n\
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n\
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n\
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n\
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n\
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n\
+SOFTWARE.\n\
+\n\
+portions are copyright 2005 JSON.org, licensed under a modified MIT license:\n\
+\n\
+The Software shall be used for Good, not Evil.\n\
+",VERSION,SDL_MAJOR_VERSION,SDL_MINOR_VERSION,SDL_PATCHLEVEL);
+}
+
 int main(int argc, char** argv) {
+  fontarg=-1;
+  // parse arguments
+  for (int curarg=1; curarg<argc; curarg++) {
+    if (argv[curarg][0]==SWITCH_CHAR) {
+      // switch, so read it
+      if (strcmp((argv[curarg])+1,"ns")==0) { // new line separator
+	curarg++;
+	if (curarg<argc) {
+	nlsep=atoi(argv[curarg]);
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"fs")==0) {
+	curarg++;
+	if (curarg<argc) {
+	fontsize=atoi(argv[curarg]);
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"ms")==0) {
+	curarg++;
+	if (curarg<argc) {
+	minspeed=atoi(argv[curarg]);
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"msc")==0) {
+	curarg++;
+	if (curarg<argc) {
+	minspeedchange=atoi(argv[curarg]);
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"sc")==0) {
+	curarg++;
+	if (curarg<argc) {
+	speedchange=atoi(argv[curarg]);
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"Ms")==0) {
+	curarg++;
+	if (curarg<argc) {
+	maxspeed=atoi(argv[curarg]);
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"geometry")==0) {
+	curarg++;
+	if (curarg<argc) {
+	  geometryinfo=new char[strlen(argv[curarg])];
+	  strcpy(geometryinfo,argv[curarg]);
+	  geomW=geometryinfo;
+	  geomH=strchr(geometryinfo,'x')+1;
+	  memset(strchr(geometryinfo,'x'),0,1);
+	  
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"v")==0) {
+	about();
+	return 0;
+      }
+    } else {
+      printf("font\n");
+      fontarg=curarg;
+    }
+  }
+  
+  if (fontarg==-1) {
+    usage(argv[0]);
+    return 1;
+  }
+  
+  /*
   if (argc<5) {
     printf("usage: %s FONT SIZE WIDTH HEIGHT [INDEX] [NEWLINESEP] [MINSPEED] [MINSPEEDCHANGE] [SPEEDCHANGE] [MAXSPEED]\n",argv[0]);
     if (argc<2) {
       printf("Creates a window which scrolls text from standard input.\n\nFONT is any font file.\nSIZE is a number.\nWIDTH is the window width in pixels.\nHEIGHT is the window height in pixels.\nINDEX is a font index, in case of font files with multiple fonts.\nNEWLINESEP sets the number of pixels between newlines.\nMINSPEED sets the scroller's minimum speed, and it is constant if SPEEDCHANGE is not defined.\nMINSPEEDCHANGE defines the minimum characters-in-queue count to change speed.\nSPEEDCHANGE defines how many character per speed increase in 1 pixel.\nMAXSPEED defines maximum speed reachable by scroller.\n\nWritten by tildearrow, licensed under MIT License.\n");
     }
     return 1;
-  }
-  willquit=false; gx=0; gy=0; gw=atoi(argv[3]); gh=atoi(argv[4]); fc=0; counter=4; speed=3;
+  }*/
+  willquit=false; gx=0; gy=0; gw=atoi(geomW); gh=atoi(geomH); fc=0; counter=4; speed=3;
   minspeed=3; minspeedchange=20; speedchange=20; maxspeed=0;
   if (argc>7) {minspeed=atoi(argv[7]);}
   if (argc>8) {minspeedchange=atoi(argv[8]);}
@@ -377,7 +523,7 @@ int main(int argc, char** argv) {
   if (atoi(argv[2])<1) {
     printf("i'm sorry but invalid size.\n");
   }
-  font=TTF_OpenFontIndex(argv[1],atoi(argv[2]),fi);
+  font=TTF_OpenFontIndex(argv[fontarg],fontsize,fi);
   if (!font) {
     printf("i'm sorry but this happened while loading font: %s\n",TTF_GetError());
     return 1;

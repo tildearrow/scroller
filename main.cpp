@@ -37,12 +37,13 @@ unsigned char utf8seq[8];
 struct format {
   unsigned char r, g, b;
   bool bold, italic, underline, stroke, conceal, shake, negative;
-  int blink, ci;
+  int blink, ci, cf;
+  int c;
 };
 
-SDL_Texture** texcache;
-bool* texcached;
-SDL_Rect* texcacher;
+SDL_Texture*** texcache;
+bool** texcached;
+SDL_Rect** texcacher;
 
 #ifdef WIN32
 #define SWITCH_CHAR '/'
@@ -56,7 +57,7 @@ struct gchar {
 };
 
 std::vector<gchar> chars;
-std::queue<int> charq;
+//std::queue<int> charq;
 std::queue<format> formatq;
 int gx, gy, gw, gh;
 int fontsize;
@@ -66,7 +67,7 @@ int fi;
 int nlsep;
 int counter;
 int popped;
-int fontarg;
+std::queue<int> fontarg;
 format poppedformat;
 int speed, minspeed, minspeedchange, speedchange, maxspeed;
 int colorsR[256];
@@ -78,7 +79,7 @@ SDL_Renderer* r;
 SDL_Surface* texts;
 SDL_Texture* textt;
 SDL_Thread* thread;
-TTF_Font* font;
+TTF_Font** font;
 SDL_Rect reeect;
 SDL_Color color={255,255,255,255};
 bool willquit;
@@ -86,25 +87,26 @@ bool nostop;
 char* geometryinfo;
 char* geomX, *geomY, *geomW, *geomH;
 
-int gputchar(int x, int y, int c, bool actuallyrender) {
+int gputchar(int x, int y, format fff, bool actuallyrender) {
   int minx, maxx, advance;
-  if (!texcached[c]) {
-    texcached[c]=true;
-    texts=TTF_RenderGlyph_Blended(font,c,color);
-    texcache[c]=SDL_CreateTextureFromSurface(r,texts);
-    texcacher[c]=texts->clip_rect;
+  if (!texcached[fff.cf][fff.c]) {
+    texcached[fff.cf][fff.c]=true;
+    printf("HERE\n");
+    texts=TTF_RenderGlyph_Blended(font[fff.cf],fff.c,color);
+    texcache[fff.cf][fff.c]=SDL_CreateTextureFromSurface(r,texts);
+    texcacher[fff.cf][fff.c]=texts->clip_rect;
     SDL_FreeSurface(texts);
   }
   reeect.x=x;
   reeect.y=y;
-  reeect.w=texcacher[c].w;
-  reeect.h=texcacher[c].h;
+  reeect.w=texcacher[fff.cf][fff.c].w;
+  reeect.h=texcacher[fff.cf][fff.c].h;
   if (actuallyrender) {
-    SDL_SetTextureColorMod(texcache[c],color.r,color.g,color.b);
-    SDL_RenderCopy(r,texcache[c],&texcacher[c],&reeect);
-    SDL_SetTextureColorMod(texcache[c],255,255,255);
+    SDL_SetTextureColorMod(texcache[fff.cf][fff.c],color.r,color.g,color.b);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_SetTextureColorMod(texcache[fff.cf][fff.c],255,255,255);
   }
-  TTF_GlyphMetrics(font,c,&minx,&maxx,NULL,NULL,&advance);
+  TTF_GlyphMetrics(font[fff.cf],fff.c,&minx,&maxx,NULL,NULL,&advance);
   return advance;
 }
 
@@ -118,7 +120,8 @@ static int inthread(void* ptr) {
   while (true) {
     chaar=getchar();
     if (chaar=='\n') {
-      charq.push(' ');
+      //charq.push(' ');
+      curformat.c=' ';
       formatq.push(curformat);
     } else {
       if (chaar==0x1b) {
@@ -164,7 +167,7 @@ static int inthread(void* ptr) {
                   curformat.stroke=0; curformat.conceal=0;
                   curformat.shake=0; curformat.italic=0;
                   curformat.blink=0; curformat.negative=0;
-                  curformat.ci=15;
+                  curformat.ci=15; curformat.cf=0;
                   break;
                 case 1:
                   curformat.bold=1;
@@ -205,6 +208,9 @@ static int inthread(void* ptr) {
                 case 9:
                   curformat.stroke=1;
                   break;
+		case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19:
+		  curformat.cf=formatlist[ok]-10;
+		  break;
                 case 21:
                   curformat.underline=2;
                   break;
@@ -315,12 +321,12 @@ static int inthread(void* ptr) {
             printf("what are you doing?\n");
           }
           utf8_decode_init(utf8seq,8);
-          charq.push(utf8_decode_next());
+	  curformat.c=utf8_decode_next();
           formatq.push(curformat);
         } else if (chaar==EOF) {
           break;
         } else {
-          charq.push(chaar);
+	  curformat.c=chaar;
           formatq.push(curformat);
         }
       }
@@ -396,7 +402,6 @@ The Software shall be used for Good, not Evil.\n\
 }
 
 int main(int argc, char** argv) {
-  fontarg=-1;
   bool geometryspecified, fsspecified;
   geometryspecified=false;
   fsspecified=false;
@@ -472,12 +477,11 @@ int main(int argc, char** argv) {
 	return 0;
       }
     } else {
-      // we can only load 1 font for now, but font switching will be available soon
-      fontarg=curarg;
+      fontarg.push(curarg);
     }
   }
   
-  if (fontarg==-1) {
+  if (fontarg.size()==0) {
     usage(argv[0]);
     return 1;
   }
@@ -554,23 +558,36 @@ int main(int argc, char** argv) {
   curformat.r=255;
   curformat.g=255;
   curformat.b=255;
+  curformat.cf=0;
 
   TTF_Init();
   
-  font=TTF_OpenFontIndex(argv[fontarg],fontsize,fi);
-  if (!font) {
-    printf("i'm sorry but this happened while loading font: %s\n",TTF_GetError());
-    return 1;
+  font=new TTF_Font*[fontarg.size()];
+  int it;
+  int fontargsize;
+  fontargsize=fontarg.size();
+  for (int it=0; it<fontargsize; it++) {
+    font[it]=TTF_OpenFontIndex(argv[fontarg.front()],fontsize,fi);
+    fontarg.pop();
+    if (!font[it]) {
+      printf("i'm sorry but this happened while loading font: %s\n",TTF_GetError());
+      return 1;
+    }
   }
   window=SDL_CreateWindow("scroller",gx,gy,gw,gh,0);
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
   thread=SDL_CreateThread(inthread,"inthread",NULL);
   // and create the character cache
-  texcache=new SDL_Texture*[1048576]; // i'm sorry, this is needed
-  texcached=new bool[1048576];
-  texcacher=new SDL_Rect[1048576];
-  for (int i=0; i<1048576; i++) {
-    texcached[i]=false;
+  texcache=new SDL_Texture**[it+1];
+  texcached=new bool*[it+1];
+  texcacher=new SDL_Rect*[it+1];
+  for (int ite=0; ite<it+1; ite++) {
+    texcache[ite]=new SDL_Texture*[1048576]; // i'm sorry, this is needed
+    texcached[ite]=new bool[1048576];
+    texcacher[ite]=new SDL_Rect[1048576];
+    for (int i=0; i<1048576; i++) {
+      texcached[ite][i]=false;
+    }
   }
   while (true) {
     SDL_Event ev;
@@ -580,26 +597,23 @@ int main(int argc, char** argv) {
       }
     }
     SDL_RenderClear(r);
-    speed=(counter==0 && charq.size()<1 && !nostop)?(0):(minspeed+max(0,(speedchange==0)?(0):((charq.size())/speedchange)));
+    speed=(counter==0 && formatq.size()<1 && !nostop)?(0):(minspeed+max(0,(speedchange==0)?(0):((formatq.size())/speedchange)));
     for (int i=0; i<fmax(1,speed); i++) {
       if (counter==0) {
-	if (charq.size()>0) {
-	  popped=charq.front();
-	  charq.pop();
+	if (formatq.size()>0) {
           poppedformat=formatq.front();
+	  popped=poppedformat.c;
           formatq.pop();
 	  chars.resize(chars.size()+1);
-	  chars[chars.size()-1].x=gw; chars[chars.size()-1].character=popped;
-          chars[chars.size()-1].f.r=poppedformat.r;
-          chars[chars.size()-1].f.g=poppedformat.g;
-          chars[chars.size()-1].f.b=poppedformat.b;
+	  chars[chars.size()-1].x=gw;
+          chars[chars.size()-1].f=poppedformat;
           // i know, i know...
           color.r=255;
           color.g=255;
           color.b=255;
           color.a=255;
-	  counter=gputchar(0,0,popped,false)-1;
-	  if (charq.size()==0) {
+	  counter=gputchar(0,0,poppedformat,false)-1;
+	  if (formatq.size()==0) {
 	    counter=nlsep;
 	  }
 	}
@@ -618,7 +632,7 @@ int main(int argc, char** argv) {
       color.g=i->f.g;
       color.b=i->f.b;
       color.a=255;
-      gputchar(i->x,0,i->character,true);
+      gputchar(i->x,0,i->f,true);
       if (i->x<-128) { // hehe
 	chars.erase(i);
       }

@@ -91,7 +91,6 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
   int minx, maxx, advance;
   if (!texcached[fff.cf][fff.c]) {
     texcached[fff.cf][fff.c]=true;
-    printf("HERE\n");
     texts=TTF_RenderGlyph_Blended(font[fff.cf],fff.c,color);
     texcache[fff.cf][fff.c]=SDL_CreateTextureFromSurface(r,texts);
     texcacher[fff.cf][fff.c]=texts->clip_rect;

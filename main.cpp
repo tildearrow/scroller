@@ -396,6 +396,14 @@ The Software shall be used for Good, not Evil.\n\
 
 int main(int argc, char** argv) {
   fontarg=-1;
+  bool geometryspecified, fsspecified;
+  geometryspecified=false;
+  fsspecified=false;
+  
+  speed=3;
+  minspeed=3; minspeedchange=20; speedchange=20; maxspeed=0;
+  nlsep=16;
+  
   // parse arguments
   for (int curarg=1; curarg<argc; curarg++) {
     if (argv[curarg][0]==SWITCH_CHAR) {
@@ -410,6 +418,7 @@ int main(int argc, char** argv) {
 	curarg++;
 	if (curarg<argc) {
 	fontsize=atoi(argv[curarg]);
+	fsspecified=true;
 	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"ms")==0) {
@@ -444,7 +453,13 @@ int main(int argc, char** argv) {
 	  geomW=geometryinfo;
 	  geomH=strchr(geometryinfo,'x')+1;
 	  memset(strchr(geometryinfo,'x'),0,1);
-	  
+	  geometryspecified=true;
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"index")==0) {
+	curarg++;
+	if (curarg<argc) {
+	fi=atoi(argv[curarg]);
 	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"v")==0) {
@@ -452,7 +467,7 @@ int main(int argc, char** argv) {
 	return 0;
       }
     } else {
-      printf("font\n");
+      // we can only load 1 font for now, but font switching will be available soon
       fontarg=curarg;
     }
   }
@@ -462,25 +477,42 @@ int main(int argc, char** argv) {
     return 1;
   }
   
-  /*
-  if (argc<5) {
-    printf("usage: %s FONT SIZE WIDTH HEIGHT [INDEX] [NEWLINESEP] [MINSPEED] [MINSPEEDCHANGE] [SPEEDCHANGE] [MAXSPEED]\n",argv[0]);
-    if (argc<2) {
-      printf("Creates a window which scrolls text from standard input.\n\nFONT is any font file.\nSIZE is a number.\nWIDTH is the window width in pixels.\nHEIGHT is the window height in pixels.\nINDEX is a font index, in case of font files with multiple fonts.\nNEWLINESEP sets the number of pixels between newlines.\nMINSPEED sets the scroller's minimum speed, and it is constant if SPEEDCHANGE is not defined.\nMINSPEEDCHANGE defines the minimum characters-in-queue count to change speed.\nSPEEDCHANGE defines how many character per speed increase in 1 pixel.\nMAXSPEED defines maximum speed reachable by scroller.\n\nWritten by tildearrow, licensed under MIT License.\n");
+  if (!fsspecified) {
+    fontsize=20;
+  }
+  
+  SDL_Init(SDL_INIT_VIDEO);
+  
+  if (!geometryspecified) {
+    SDL_Rect temprect;
+    int displays;
+    displays=SDL_GetNumVideoDisplays();
+    if (displays!=1) {
+      printf("%d displays detected, using first one\n",displays);
     }
-    return 1;
-  }*/
-  willquit=false; gx=0; gy=0; gw=atoi(geomW); gh=atoi(geomH); fc=0; counter=4; speed=3;
-  minspeed=3; minspeedchange=20; speedchange=20; maxspeed=0;
-  if (argc>7) {minspeed=atoi(argv[7]);}
-  if (argc>8) {minspeedchange=atoi(argv[8]);}
-  if (argc>9) {speedchange=atoi(argv[9]);}
-  if (argc>10) {maxspeed=atoi(argv[10]);}
-  nlsep=16;
-  if (argc>6) {nlsep=atoi(argv[6]);}
-  if (argc>5) {fi=atoi(argv[5]);} else {fi=0;}
+    int dbresult;
+    dbresult=SDL_GetDisplayBounds(0,&temprect);
+    if (dbresult==-1) {
+      printf("i'm sorry, but something happened getting display bounds.\n");
+    }
+    gw=temprect.w;
+    gh=(fontsize*3)/2;
+  } else {
+    gw=atoi(geomW); gh=atoi(geomH);
+  }
+  
+  willquit=false; gx=0; gy=0; fc=0; counter=4;
+  
   // width check
-  if (gw<1) {printf("i'm sorry, but invalid width.\n"); return 1;}
+  if (gw<1) {
+    if (geometryspecified) {
+      printf("i'm sorry, but invalid width.\n");
+      return 1;
+    } else {
+      printf("i'm sorry, but your screen is way too small for this program (%d width).\n",gw);
+      return 1;
+    }
+  }
   
   // prepare colors
   for (int I=0; I<256; I++) {
@@ -518,7 +550,6 @@ int main(int argc, char** argv) {
   curformat.g=255;
   curformat.b=255;
 
-  SDL_Init(SDL_INIT_VIDEO);
   TTF_Init();
   if (atoi(argv[2])<1) {
     printf("i'm sorry but invalid size.\n");

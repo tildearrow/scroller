@@ -82,6 +82,7 @@ TTF_Font* font;
 SDL_Rect reeect;
 SDL_Color color={255,255,255,255};
 bool willquit;
+bool nostop;
 char* geometryinfo;
 char* geomX, *geomY, *geomW, *geomH;
 
@@ -403,6 +404,7 @@ int main(int argc, char** argv) {
   speed=3;
   minspeed=3; minspeedchange=20; speedchange=20; maxspeed=0;
   nlsep=16;
+  nostop=false;
   
   // parse arguments
   for (int curarg=1; curarg<argc; curarg++) {
@@ -461,6 +463,9 @@ int main(int argc, char** argv) {
 	if (curarg<argc) {
 	fi=atoi(argv[curarg]);
 	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"nostop")==0) {
+	nostop=true;
       } else
       if (strcmp((argv[curarg])+1,"v")==0) {
 	about();
@@ -551,9 +556,7 @@ int main(int argc, char** argv) {
   curformat.b=255;
 
   TTF_Init();
-  if (atoi(argv[2])<1) {
-    printf("i'm sorry but invalid size.\n");
-  }
+  
   font=TTF_OpenFontIndex(argv[fontarg],fontsize,fi);
   if (!font) {
     printf("i'm sorry but this happened while loading font: %s\n",TTF_GetError());
@@ -577,7 +580,7 @@ int main(int argc, char** argv) {
       }
     }
     SDL_RenderClear(r);
-    speed=(counter==0 && charq.size()<1)?(0):(minspeed+max(0,(speedchange==0)?(0):((charq.size())/speedchange)));
+    speed=(counter==0 && charq.size()<1 && !nostop)?(0):(minspeed+max(0,(speedchange==0)?(0):((charq.size())/speedchange)));
     for (int i=0; i<fmax(1,speed); i++) {
       if (counter==0) {
 	if (charq.size()>0) {

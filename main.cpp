@@ -254,6 +254,24 @@ static int inthread(void* ptr) {
                   curformat.g=colorsG[curformat.ci];
                   curformat.b=colorsB[curformat.ci];
                   break;
+		case 38:
+		  ok++;
+		  switch (formatlist[ok]) {
+		    case 2: // RGB
+		      curformat.r=formatlist[++ok];
+		      curformat.g=formatlist[++ok];
+		      curformat.b=formatlist[++ok];
+		      break;
+		    case 5: // 256 colors
+		      curformat.r=colorsR[formatlist[++ok]];
+		      curformat.g=colorsG[formatlist[ok]];
+		      curformat.b=colorsB[formatlist[ok]];
+		      break;
+		    default:
+		      ok--;
+		      break;
+		  }
+		  break;
                 default:
                   printf("new format, %d\n",formatlist[ok]);
                   break;

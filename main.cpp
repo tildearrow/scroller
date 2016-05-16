@@ -357,9 +357,9 @@ OPTIONS:\n\
   %cMs SPEED               maximum speed\n\
                           default is infinity (0)\n\
   %cnostop                 continue scrolling even if there is no text left\n\
-  %cimageN FILE            load an image for usage with escape code ^[[200+Nm\n\
-  %cdefcol R,G,B           default color\n\
-  %csolid  [R,G,B]         no transparency\n\
+  %cimageN FILE        nyi load an image for usage with escape code ^[[200+Nm\n\
+  %cdefcol R,G,B       nyi default color\n\
+  %csolid  [R,G,B]     nyi no transparency\n\
   %cv                      show version\n\
 \n\
 written by tildearrow, licensed under MIT License.\

@@ -26,13 +26,13 @@ the default run uses the Segoe UI font with a scroller width of 1024
 ### Linux and OS X
 open a terminal and
 ```
-./scroller <font> <size> <scroller width> <scroller height> [font index] [new line separation] [minimum speed] [minimum speed to start variable speed] [variable speed, in chars] [maximum speed]
+./scroller [options] <font> [font...]
 ```
 then feed standard input.
 
 ### Windows
 open a command prompt, and
 ```
-scroller.exe <font> <size> <scroller width> <scroller height> [font index] [new line separation] [minimum speed] [minimum speed to start variable speed] [variable speed, in chars] [maximum speed]
+scroller.exe [options] <font> [font...]
 ```
 then write in the command prompt.

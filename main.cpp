@@ -39,6 +39,12 @@ struct format {
   bool bold, italic, underline, stroke, conceal, shake, negative;
   int blink, ci, cf;
   int c;
+  int command, value;
+};
+
+enum COMMANDS {
+  COMMAND_TEXT=0,
+  COMMAND_IMAGE
 };
 
 SDL_Texture*** texcache;
@@ -78,6 +84,7 @@ SDL_Window* window;
 SDL_Renderer* r;
 SDL_Surface* texts;
 SDL_Texture* textt;
+SDL_Texture* image;
 SDL_Thread* thread;
 TTF_Font** font;
 SDL_Rect reeect;
@@ -88,6 +95,10 @@ char* geometryinfo;
 char* geomX, *geomY, *geomW, *geomH;
 
 int gputchar(int x, int y, format fff, bool actuallyrender) {
+  if (fff.command==COMMAND_IMAGE) {
+    printf("hey, images not supported yet!\n");
+    return 0;
+  } else {
   int minx, maxx, advance;
   if (!texcached[fff.cf][fff.c]) {
     texcached[fff.cf][fff.c]=true;
@@ -112,6 +123,7 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
   }
   TTF_GlyphMetrics(font[fff.cf],fff.c,&minx,&maxx,NULL,NULL,&advance);
   return (short)(advance<<1)/2;
+  }
 }
 
 static int inthread(void* ptr) {
@@ -119,6 +131,7 @@ static int inthread(void* ptr) {
   getout=false;
   int curindex;
   int chaar;
+  int mode;
   unsigned char chaaar;
   std::vector<int> formatlist;
   while (true) {
@@ -159,128 +172,139 @@ static int inthread(void* ptr) {
                   break;
                 default:
                   getout=true;
+		  mode=chaaar;
               }
             }
-            for (int ok=0; ok<=curindex; ok++) {
-              switch (formatlist[ok]) {
-                case 0:
-                  curformat.r=defaultcolors[0];
-                  curformat.g=defaultcolors[1];
-                  curformat.b=defaultcolors[2];
-                  curformat.bold=0; curformat.underline=0;
-                  curformat.stroke=0; curformat.conceal=0;
-                  curformat.shake=0; curformat.italic=0;
-                  curformat.blink=0; curformat.negative=0;
-                  curformat.ci=15; curformat.cf=0;
-                  break;
-                case 1:
-                  curformat.bold=1;
-                  if (curformat.ci<8) {
-                    curformat.ci+=8;
-                  }
-                  curformat.r=colorsR[curformat.ci];
-                  curformat.g=colorsG[curformat.ci];
-                  curformat.b=colorsB[curformat.ci];
-                  break;
-                case 2:
-                  if (curformat.ci>=8 && curformat.ci<16) {
-                    curformat.ci-=8;
-                  }
-                  curformat.r=colorsR[curformat.ci];
-                  curformat.g=colorsG[curformat.ci];
-                  curformat.b=colorsB[curformat.ci];
-                  curformat.bold=0;
-                  break;
-                case 3:
-                  curformat.italic=1;
-                  break;
-                case 4:
-                  curformat.underline=1;
-                  break;
-                case 5:
-                  curformat.blink=24;
-                  break;
-                case 6:
-                  curformat.blink=12;
-                  break;
-                case 7:
-                  curformat.negative=1;
-                  break;
-                case 8:
-                  curformat.conceal=1;
-                  break;
-                case 9:
-                  curformat.stroke=1;
-                  break;
-		case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19:
-		  curformat.cf=formatlist[ok]-10;
-		  break;
-                case 21:
-                  curformat.underline=2;
-                  break;
-                case 22:
-                  if (curformat.ci>=8 && curformat.ci<16) {
-                    curformat.ci-=8;
-                  }
-                  curformat.r=colorsR[curformat.ci];
-                  curformat.g=colorsG[curformat.ci];
-                  curformat.b=colorsB[curformat.ci];
-                  curformat.bold=0;
-                  break;
-                case 23:
-                  curformat.italic=0;
-                  break;
-                case 24:
-                  curformat.underline=0;
-                  break;
-                case 25:
-                  curformat.blink=0;
-                  break;
-                case 26:
-                  curformat.shake=1;
-                  break;
-                case 27:
-                  curformat.negative=0;
-                  break;
-                case 28:
-                  curformat.conceal=0;
-                  break;
-                case 29:
-                  curformat.stroke=0;
-                  break;
-                case 30: case 31: case 32: case 33: case 34: case 35: case 36: case 37:
-                  if (curformat.bold) {
-                    curformat.ci=8+(formatlist[ok]-30);
-                  } else {
-                    curformat.ci=(formatlist[ok]-30);
-                  }
-                  curformat.r=colorsR[curformat.ci];
-                  curformat.g=colorsG[curformat.ci];
-                  curformat.b=colorsB[curformat.ci];
-                  break;
-		case 38:
-		  ok++;
-		  switch (formatlist[ok]) {
-		    case 2: // RGB
-		      curformat.r=formatlist[++ok];
-		      curformat.g=formatlist[++ok];
-		      curformat.b=formatlist[++ok];
-		      break;
-		    case 5: // 256 colors
-		      curformat.r=colorsR[formatlist[++ok]];
-		      curformat.g=colorsG[formatlist[ok]];
-		      curformat.b=colorsB[formatlist[ok]];
-		      break;
-		    default:
-		      ok--;
-		      break;
-		  }
-		  break;
-                default:
-                  printf("new format, %d\n",formatlist[ok]);
-                  break;
-            }
-          }
+            if (mode=='m') {
+	      for (int ok=0; ok<=curindex; ok++) {
+		switch (formatlist[ok]) {
+		  case 0:
+		    curformat.r=defaultcolors[0];
+		    curformat.g=defaultcolors[1];
+		    curformat.b=defaultcolors[2];
+		    curformat.bold=0; curformat.underline=0;
+		    curformat.stroke=0; curformat.conceal=0;
+		    curformat.shake=0; curformat.italic=0;
+		    curformat.blink=0; curformat.negative=0;
+		    curformat.ci=15; curformat.cf=0;
+		    break;
+		  case 1:
+		    curformat.bold=1;
+		    if (curformat.ci<8) {
+		      curformat.ci+=8;
+		    }
+		    curformat.r=colorsR[curformat.ci];
+		    curformat.g=colorsG[curformat.ci];
+		    curformat.b=colorsB[curformat.ci];
+		    break;
+		  case 2:
+		    if (curformat.ci>=8 && curformat.ci<16) {
+		      curformat.ci-=8;
+		    }
+		    curformat.r=colorsR[curformat.ci];
+		    curformat.g=colorsG[curformat.ci];
+		    curformat.b=colorsB[curformat.ci];
+		    curformat.bold=0;
+		    break;
+		  case 3:
+		    curformat.italic=1;
+		    break;
+		  case 4:
+		    curformat.underline=1;
+		    break;
+		  case 5:
+		    curformat.blink=24;
+		    break;
+		  case 6:
+		    curformat.blink=12;
+		    break;
+		  case 7:
+		    curformat.negative=1;
+		    break;
+		  case 8:
+		    curformat.conceal=1;
+		    break;
+		  case 9:
+		    curformat.stroke=1;
+		    break;
+		  case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19:
+		    curformat.cf=formatlist[ok]-10;
+		    break;
+		  case 21:
+		    curformat.underline=2;
+		    break;
+		  case 22:
+		    if (curformat.ci>=8 && curformat.ci<16) {
+		      curformat.ci-=8;
+		    }
+		    curformat.r=colorsR[curformat.ci];
+		    curformat.g=colorsG[curformat.ci];
+		    curformat.b=colorsB[curformat.ci];
+		    curformat.bold=0;
+		    break;
+		  case 23:
+		    curformat.italic=0;
+		    break;
+		  case 24:
+		    curformat.underline=0;
+		    break;
+		  case 25:
+		    curformat.blink=0;
+		    break;
+		  case 26:
+		    curformat.shake=1;
+		    break;
+		  case 27:
+		    curformat.negative=0;
+		    break;
+		  case 28:
+		    curformat.conceal=0;
+		    break;
+		  case 29:
+		    curformat.stroke=0;
+		    break;
+		  case 30: case 31: case 32: case 33: case 34: case 35: case 36: case 37:
+		    if (curformat.bold) {
+		      curformat.ci=8+(formatlist[ok]-30);
+		    } else {
+		      curformat.ci=(formatlist[ok]-30);
+		    }
+		    curformat.r=colorsR[curformat.ci];
+		    curformat.g=colorsG[curformat.ci];
+		    curformat.b=colorsB[curformat.ci];
+		    break;
+		  case 38:
+		    ok++;
+		    switch (formatlist[ok]) {
+		      case 2: // RGB
+			curformat.r=formatlist[++ok];
+			curformat.g=formatlist[++ok];
+			curformat.b=formatlist[++ok];
+			break;
+		      case 5: // 256 colors
+			curformat.r=colorsR[formatlist[++ok]];
+			curformat.g=colorsG[formatlist[ok]];
+			curformat.b=colorsB[formatlist[ok]];
+			break;
+		      default:
+			ok--;
+			break;
+		    }
+		    break;
+		  default:
+		    printf("new format, %d\n",formatlist[ok]);
+		    break;
+	      }
+	    }
+          } else if (mode=='w') {
+	    for (int ok=0; ok<=curindex; ok++) {
+	      curformat.command=COMMAND_IMAGE;
+	      curformat.value=formatlist[ok];
+	      formatq.push(curformat);
+	      curformat.command=COMMAND_TEXT;
+	      curformat.value=0;
+	    }
+	  }
         }
       } else {
         if (chaar>0x7f) {
@@ -581,6 +605,7 @@ int main(int argc, char** argv) {
   curformat.g=255;
   curformat.b=255;
   curformat.cf=0;
+  curformat.command=COMMAND_TEXT;
 
   TTF_Init();
   

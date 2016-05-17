@@ -92,8 +92,13 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
   if (!texcached[fff.cf][fff.c]) {
     texcached[fff.cf][fff.c]=true;
     texts=TTF_RenderGlyph_Blended(font[fff.cf],fff.c,color);
-    texcache[fff.cf][fff.c]=SDL_CreateTextureFromSurface(r,texts);
-    texcacher[fff.cf][fff.c]=texts->clip_rect;
+    if (texts==NULL) {
+      fprintf(stderr,"error while rendering character 0x%x\n",fff.c);
+      texcached[fff.cf][fff.c]=false;
+    } else {
+      texcache[fff.cf][fff.c]=SDL_CreateTextureFromSurface(r,texts);
+      texcacher[fff.cf][fff.c]=texts->clip_rect;
+    }
     SDL_FreeSurface(texts);
   }
   reeect.x=x;
@@ -106,7 +111,7 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
     SDL_SetTextureColorMod(texcache[fff.cf][fff.c],255,255,255);
   }
   TTF_GlyphMetrics(font[fff.cf],fff.c,&minx,&maxx,NULL,NULL,&advance);
-  return advance;
+  return (short)(advance<<1)/2;
 }
 
 static int inthread(void* ptr) {
@@ -616,7 +621,7 @@ int main(int argc, char** argv) {
     SDL_RenderClear(r);
     speed=(counter==0 && formatq.size()<1 && !nostop)?(0):(minspeed+max(0,(speedchange==0)?(0):((formatq.size())/speedchange)));
     for (int i=0; i<fmax(1,speed); i++) {
-      if (counter==0) {
+      if (counter<=0) {
 	if (formatq.size()>0) {
           poppedformat=formatq.front();
 	  popped=poppedformat.c;
@@ -630,8 +635,14 @@ int main(int argc, char** argv) {
           color.b=255;
           color.a=255;
 	  counter=gputchar(0,0,poppedformat,false)-1;
+	  printf("counter: %d\n",counter);
 	  if (formatq.size()==0) {
 	    counter=nlsep;
+	  }
+	  // is the counter negative?
+	  if (counter<0) {
+	    chars[chars.size()-1].x+=counter;
+	    counter=0;
 	  }
 	}
       } else {

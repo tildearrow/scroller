@@ -635,7 +635,6 @@ int main(int argc, char** argv) {
           color.b=255;
           color.a=255;
 	  counter=gputchar(0,0,poppedformat,false)-1;
-	  printf("counter: %d\n",counter);
 	  if (formatq.size()==0) {
 	    counter=nlsep;
 	  }

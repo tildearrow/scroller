@@ -32,6 +32,13 @@
 #define min(x,y) (((x)<(y))?(x):(y))
 #define max(x,y) (((x)>(y))?(x):(y))
 
+#ifndef WIN32
+#include <X11/Xlib.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+SDL_GLContext tc;
+#endif
+
 const unsigned char defaultcolors[3]={255,255,255};
 unsigned char utf8seq[8];
 
@@ -636,7 +643,8 @@ int main(int argc, char** argv) {
       return 1;
     }
   }
-  window=SDL_CreateWindow("scroller",gx,gy,gw,gh,0);
+  window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL);
+  tc=SDL_GL_CreateContext(window);
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
   
   // image init
@@ -679,7 +687,14 @@ int main(int argc, char** argv) {
         willquit=true;
       }
     }
-    SDL_RenderClear(r);
+    /*SDL_SetRenderDrawColor(r,255,255,255,128);
+    SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_ADD);
+    SDL_RenderClear(r);*/
+    //SDL_SetRenderDrawColor(r,0,0,0,0);
+    //SDL_RenderClear(r);
+    glClearColor(0,0,0,0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    
     speed=(counter==0 && formatq.size()<1 && !nostop)?(0):(minspeed+max(0,(speedchange==0)?(0):((formatq.size())/speedchange)));
     for (int i=0; i<fmax(1,speed); i++) {
       if (counter<=0) {
@@ -726,8 +741,8 @@ int main(int argc, char** argv) {
       }
     }
     
-    
-    SDL_RenderPresent(r);
+    SDL_GL_SwapWindow(window);
+    //SDL_RenderPresent(r);
     ++fc;
     pc2=pc1;
     pc1=SDL_GetTicks();

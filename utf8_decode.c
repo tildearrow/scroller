@@ -51,7 +51,7 @@ SOFTWARE.
     11111xxx       error
 */
 
-// some modifications from char to unsigned char by tildearrow
+/* some modifications from char to unsigned char by tildearrow */
 
 static int  the_index = 0;
 static int  the_length = 0;

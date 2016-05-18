@@ -26,6 +26,7 @@
 #include <queue>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 #include "utf8_decode.c"
 
 #define min(x,y) (((x)<(y))?(x):(y))
@@ -74,6 +75,7 @@ int nlsep;
 int counter;
 int popped;
 std::queue<int> fontarg;
+std::queue<int> imagearg;
 format poppedformat;
 int speed, minspeed, minspeedchange, speedchange, maxspeed;
 int colorsR[256];
@@ -84,7 +86,8 @@ SDL_Window* window;
 SDL_Renderer* r;
 SDL_Surface* texts;
 SDL_Texture* textt;
-SDL_Texture* image;
+SDL_Texture** image;
+SDL_Rect* irect;
 SDL_Thread* thread;
 TTF_Font** font;
 SDL_Rect reeect;
@@ -96,8 +99,14 @@ char* geomX, *geomY, *geomW, *geomH;
 
 int gputchar(int x, int y, format fff, bool actuallyrender) {
   if (fff.command==COMMAND_IMAGE) {
-    printf("hey, images not supported yet!\n");
-    return 0;
+    reeect.x=x;
+    reeect.y=y;
+    reeect.w=irect[fff.value].w;
+    reeect.h=irect[fff.value].h;
+    if (actuallyrender) {
+      SDL_RenderCopy(r,image[fff.value],NULL,&reeect);
+    }
+    return irect[fff.value].w;
   } else {
   int minx, maxx, advance;
   if (!texcached[fff.cf][fff.c]) {
@@ -409,7 +418,7 @@ OPTIONS:\n\
   %cMs SPEED               maximum speed\n\
                           default is infinity (0)\n\
   %cnostop                 continue scrolling even if there is no text left\n\
-  %cimageN FILE        nyi load an image for usage with escape code ^[[200+Nm\n\
+  %cimage FILE             load an image for usage with escape code ^[[200+Nm\n\
   %cdefcol R,G,B       nyi default color\n\
   %csolid  [R,G,B]     nyi no transparency\n\
   %cv                      show version\n\
@@ -518,6 +527,10 @@ int main(int argc, char** argv) {
       if (strcmp((argv[curarg])+1,"nostop")==0) {
 	nostop=true;
       } else
+      if (strcmp((argv[curarg])+1,"image")==0) {
+	curarg++;
+	imagearg.push(curarg);
+      } else
       if (strcmp((argv[curarg])+1,"v")==0) {
 	about();
 	return 0;
@@ -606,6 +619,8 @@ int main(int argc, char** argv) {
   curformat.b=255;
   curformat.cf=0;
   curformat.command=COMMAND_TEXT;
+  
+  // font init
 
   TTF_Init();
   
@@ -623,6 +638,27 @@ int main(int argc, char** argv) {
   }
   window=SDL_CreateWindow("scroller",gx,gy,gw,gh,0);
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
+  
+  // image init
+  IMG_Init(0xffffffff); // for all future formats
+  
+  // load all images now
+  int imageargsize=imagearg.size();
+  image=new SDL_Texture*[imageargsize];
+  irect=new SDL_Rect[imageargsize];
+  SDL_Surface* tempsurface;
+  for (int iter=0; iter<imageargsize; iter++) {
+    tempsurface=IMG_Load(argv[imagearg.front()]);
+    imagearg.pop();
+    if (tempsurface==NULL) {
+      printf("error while reading image: %s\n",IMG_GetError());
+      return 1;
+    }
+    irect[iter]=tempsurface->clip_rect;
+    image[iter]=SDL_CreateTextureFromSurface(r,tempsurface);
+    SDL_FreeSurface(tempsurface);
+  }
+  
   thread=SDL_CreateThread(inthread,"inthread",NULL);
   // and create the character cache
   texcache=new SDL_Texture**[it+1];

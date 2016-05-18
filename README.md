@@ -2,7 +2,7 @@
 scroller is a simple application which creates a window displaying scrolled text. it is supposed to be run from a terminal/command line, and often, piped.
 
 ## Dependencies
-- SDL2 and SDL_ttf
+- SDL2, SDL_ttf and SDL_image
 - CMake for building
 
 ## Compiling

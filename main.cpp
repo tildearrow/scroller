@@ -635,7 +635,7 @@ int main(int argc, char** argv) {
   int it;
   int fontargsize;
   fontargsize=fontarg.size();
-  for (int it=0; it<fontargsize; it++) {
+  for (it=0; it<fontargsize; it++) {
     font[it]=TTF_OpenFontIndex(argv[fontarg.front()],fontsize,fi);
     fontarg.pop();
     if (!font[it]) {

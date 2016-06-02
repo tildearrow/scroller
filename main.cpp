@@ -126,7 +126,19 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
   reeect.w=texcacher[fff.cf][fff.c].w;
   reeect.h=texcacher[fff.cf][fff.c].h;
   if (actuallyrender) {
+    SDL_SetTextureColorMod(texcache[fff.cf][fff.c],0,0,0);
+    reeect.y--;
+    reeect.x++;
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    reeect.x-=2;
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    reeect.y+=2;
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    reeect.x+=2;
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
     SDL_SetTextureColorMod(texcache[fff.cf][fff.c],color.r,color.g,color.b);
+    reeect.x--;
+    reeect.y--;
     SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
     SDL_SetTextureColorMod(texcache[fff.cf][fff.c],255,255,255);
   }

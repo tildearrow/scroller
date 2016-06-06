@@ -52,7 +52,7 @@ SDL_Texture*** texcache;
 bool** texcached;
 SDL_Rect** texcacher;
 
-#ifdef WIN32
+#ifdef _WIN32
 #define SWITCH_CHAR '/'
 #else
 #define SWITCH_CHAR '-'

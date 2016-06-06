@@ -2,6 +2,8 @@
 scroller is a simple application which creates a window displaying scrolled text. it is supposed to be run from a terminal/command line, and often, piped.
 
 # Warning on Windows
+there is a bug if a width greater than 999 and a height greater than 99 is used.
+
 because of no reason (yes, because i don't find the reason), a heap may be corrupted (parameters: 0x00007FFA366BDD50). if the heap does get corrupted, re-run until it does not say anything, or merely debug and continue on Visual Studio.
 
 ## Dependencies

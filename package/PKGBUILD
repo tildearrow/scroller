@@ -6,7 +6,7 @@ pkgdesc="scrolltext fed by stdin"
 arch=("any")
 url="https://github.com/tildearrow/scroller"
 license=("MIT")
-depends=("sdl2" "sdl2_ttf")
+depends=("sdl2" "sdl2_image" "sdl2_ttf")
 makedepends=("cmake")
 
 build() {

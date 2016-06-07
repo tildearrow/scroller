@@ -58,6 +58,8 @@ SDL_Rect** texcacher;
 #define SWITCH_CHAR '-'
 #endif
 
+#define EXTREME_QUALITY_OUTLINE
+
 struct gchar {
   int character, x;
   format f;
@@ -136,9 +138,21 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
     SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
     reeect.x+=2;
     SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
-    SDL_SetTextureColorMod(texcache[fff.cf][fff.c],color.r,color.g,color.b);
     reeect.x--;
     reeect.y--;
+#ifdef EXTREME_QUALITY_OUTLINE
+    reeect.x--;
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    reeect.x+=2;
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    reeect.x--;
+    reeect.y--;
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    reeect.y+=2;
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    reeect.y--;
+#endif
+    SDL_SetTextureColorMod(texcache[fff.cf][fff.c],color.r,color.g,color.b);
     SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
     SDL_SetTextureColorMod(texcache[fff.cf][fff.c],255,255,255);
   }
@@ -648,7 +662,7 @@ int main(int argc, char** argv) {
       return 1;
     }
   }
-  window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL);
+  window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL|SDL_WINDOW_BORDERLESS);
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
   
   // image init

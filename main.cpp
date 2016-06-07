@@ -52,7 +52,7 @@ SDL_Texture*** texcache;
 bool** texcached;
 SDL_Rect** texcacher;
 
-#ifdef WIN32
+#ifdef _WIN32
 #define SWITCH_CHAR '/'
 #else
 #define SWITCH_CHAR '-'
@@ -266,7 +266,7 @@ static int inthread(void* ptr) {
 		    curformat.cf=formatlist[ok]-10;
 		    break;
 		  case 21:
-		    curformat.underline=2;
+		    curformat.underline=1;
 		    break;
 		  case 22:
 		    if (curformat.ci>=8 && curformat.ci<16) {

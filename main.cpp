@@ -283,20 +283,20 @@ static int inthread(void* ptr) {
 		  case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19:
 		    curformat.cf=formatlist[ok]-10;
 		    break;
+		  case 20:
+		    curformat.shake=1;
 		  case 21:
-		    curformat.underline=1;
+		    curformat.bold=0;
 		    break;
 		  case 22:
-		    if (curformat.ci>=8 && curformat.ci<16) {
-		      curformat.ci-=8;
-		    }
-		    curformat.r=colorsR[curformat.ci];
-		    curformat.g=colorsG[curformat.ci];
-		    curformat.b=colorsB[curformat.ci];
+		    curformat.r=defaultcolors[0];
+		    curformat.g=defaultcolors[1];
+		    curformat.b=defaultcolors[2];
 		    curformat.bold=0;
 		    break;
 		  case 23:
 		    curformat.italic=0;
+		    curformat.shake=0;
 		    break;
 		  case 24:
 		    curformat.underline=0;
@@ -343,6 +343,11 @@ static int inthread(void* ptr) {
 			ok--;
 			break;
 		    }
+		    break;
+		  case 39:
+		    curformat.r=defaultcolors[0];
+		    curformat.g=defaultcolors[1];
+		    curformat.b=defaultcolors[2];
 		    break;
 		  default:
 		    printf("new format, %d\n",formatlist[ok]);
@@ -769,7 +774,7 @@ int main(int argc, char** argv) {
       color.g=i->f.g;
       color.b=i->f.b;
       color.a=255;
-      gputchar(i->x,0,i->f,true);
+      gputchar(i->x+((i->f.shake)?((random()%5)-2):(0)),((i->f.shake)?((random()%5)-2):(0)),i->f,true);
       if (i->x<-128) { // hehe
 	chars.erase(i);
       }

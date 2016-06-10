@@ -72,6 +72,7 @@ int gx, gy, gw, gh;
 int fontsize;
 int pc1, pc2;
 int fc;
+int fcdegrees;
 int fi;
 int nlsep;
 int counter;
@@ -171,7 +172,9 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
   reeect.h=texcacher[fff.cf][fff.c].h;
   if (actuallyrender) {
     SDL_SetTextureColorMod(texcache[fff.cf][fff.c],color.r,color.g,color.b);
+    SDL_SetTextureAlphaMod(texcache[fff.cf][fff.c],(fff.blink)?((int)(127+(sin(((double)fcdegrees*(double)fff.blink*3.14159265358979323846264338327950)/180.0)*127))):(255));
     SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_SetTextureAlphaMod(texcache[fff.cf][fff.c],255);
     SDL_SetTextureColorMod(texcache[fff.cf][fff.c],255,255,255);
   }
   TTF_GlyphMetrics(font[fff.cf],fff.c,&minx,&maxx,NULL,NULL,&advance);
@@ -266,10 +269,10 @@ static int inthread(void* ptr) {
 		    curformat.underline=1;
 		    break;
 		  case 5:
-		    curformat.blink=24;
+		    curformat.blink=4;
 		    break;
 		  case 6:
-		    curformat.blink=12;
+		    curformat.blink=20;
 		    break;
 		  case 7:
 		    curformat.negative=1;
@@ -618,7 +621,7 @@ int main(int argc, char** argv) {
     gw=atoi(geomW); gh=atoi(geomH);
   }
   
-  willquit=false; gx=0; gy=0; fc=0; counter=4;
+  willquit=false; gx=0; gy=0; fc=0; counter=4; fcdegrees=0;
   
   // width check
   if (gw<1) {
@@ -781,7 +784,7 @@ int main(int argc, char** argv) {
     }
     
     SDL_RenderPresent(r);
-    ++fc;
+    ++fc; fcdegrees=fc%360;
     pc2=pc1;
     pc1=SDL_GetTicks();
     if (willquit) {break;}

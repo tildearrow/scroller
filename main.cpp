@@ -88,6 +88,7 @@ SDL_Window* window;
 SDL_Renderer* r;
 SDL_Surface* texts;
 SDL_Texture* textt;
+SDL_Texture* textfinal;
 SDL_Texture** image;
 SDL_Rect* irect;
 SDL_Thread* thread;
@@ -119,39 +120,56 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
       texcached[fff.cf][fff.c]=false;
     } else {
       texcache[fff.cf][fff.c]=SDL_CreateTextureFromSurface(r,texts);
-      texcacher[fff.cf][fff.c]=texts->clip_rect;
-    }
-    SDL_FreeSurface(texts);
-  }
-  reeect.x=x;
-  reeect.y=y;
-  reeect.w=texcacher[fff.cf][fff.c].w;
-  reeect.h=texcacher[fff.cf][fff.c].h;
-  if (actuallyrender) {
-    SDL_SetTextureColorMod(texcache[fff.cf][fff.c],0,0,0);
+      textfinal=SDL_CreateTexture(r,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_TARGET,texts->clip_rect.w+2,texts->clip_rect.h+2);
+      SDL_SetRenderTarget(r,textfinal);
+      SDL_SetTextureBlendMode(textfinal,SDL_BLENDMODE_BLEND);
+      SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
+      reeect.x=x+1;
+      reeect.y=y+1;
+      reeect.w=texts->clip_rect.w;
+      reeect.h=texts->clip_rect.h;
+      SDL_RenderClear(r);
+      SDL_SetTextureColorMod(texcache[fff.cf][fff.c],0,0,0);
     reeect.y--;
     reeect.x++;
-    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texts->clip_rect,&reeect);
     reeect.x-=2;
-    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texts->clip_rect,&reeect);
     reeect.y+=2;
-    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texts->clip_rect,&reeect);
     reeect.x+=2;
-    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texts->clip_rect,&reeect);
     reeect.x--;
     reeect.y--;
 #ifdef EXTREME_QUALITY_OUTLINE
     reeect.x--;
-    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texts->clip_rect,&reeect);
     reeect.x+=2;
-    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texts->clip_rect,&reeect);
     reeect.x--;
     reeect.y--;
-    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texts->clip_rect,&reeect);
     reeect.y+=2;
-    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texts->clip_rect,&reeect);
     reeect.y--;
 #endif
+    SDL_SetTextureColorMod(texcache[fff.cf][fff.c],255,255,255);
+    SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texts->clip_rect,&reeect);
+    SDL_SetTextureColorMod(texcache[fff.cf][fff.c],255,255,255);
+      SDL_SetRenderTarget(r,NULL);
+      SDL_DestroyTexture(texcache[fff.cf][fff.c]);
+      texcache[fff.cf][fff.c]=textfinal;
+      texcacher[fff.cf][fff.c]=texts->clip_rect;
+      texcacher[fff.cf][fff.c].w+=2;
+      texcacher[fff.cf][fff.c].h+=2;
+    }
+    SDL_FreeSurface(texts);
+  }
+  reeect.x=x-1;
+  reeect.y=y-1;
+  reeect.w=texcacher[fff.cf][fff.c].w;
+  reeect.h=texcacher[fff.cf][fff.c].h;
+  if (actuallyrender) {
     SDL_SetTextureColorMod(texcache[fff.cf][fff.c],color.r,color.g,color.b);
     SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
     SDL_SetTextureColorMod(texcache[fff.cf][fff.c],255,255,255);

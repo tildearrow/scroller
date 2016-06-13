@@ -292,9 +292,10 @@ static int inthread(void* ptr) {
 		    curformat.bold=0;
 		    break;
 		  case 22:
+		    /*
 		    curformat.r=defaultcolors[0];
 		    curformat.g=defaultcolors[1];
-		    curformat.b=defaultcolors[2];
+		    curformat.b=defaultcolors[2];*/
 		    curformat.bold=0;
 		    break;
 		  case 23:

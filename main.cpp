@@ -94,6 +94,7 @@ SDL_Texture** image;
 SDL_Rect* irect;
 SDL_Thread* thread;
 TTF_Font** font;
+int* underliney;
 SDL_Rect reeect;
 SDL_Color color={255,255,255,255};
 bool willquit;
@@ -679,15 +680,36 @@ int main(int argc, char** argv) {
   
   font=new TTF_Font*[fontarg.size()];
   int it;
+  int itera;
   int fontargsize;
   fontargsize=fontarg.size();
+  underliney=new int[fontargsize];
   for (it=0; it<fontargsize; it++) {
+    int maxy;
+    int truemaxy;
+    truemaxy=0;
     font[it]=TTF_OpenFontIndex(argv[fontarg.front()],fontsize,fi);
     fontarg.pop();
     if (!font[it]) {
       printf("i'm sorry but this happened while loading font: %s\n",TTF_GetError());
       return 1;
     }
+    // retrieve heights from A to Z, a to z and 0 to 9
+    // this is for the underline
+    for (itera='0'; itera<='9'; itera++) {
+      TTF_GlyphMetrics(font[it],itera,NULL,NULL,NULL,&maxy,NULL);
+      if (maxy>truemaxy) {truemaxy=maxy;}
+    }
+    for (itera='A'; itera<='Z'; itera++) {
+      TTF_GlyphMetrics(font[it],itera,NULL,NULL,NULL,&maxy,NULL);
+      if (maxy>truemaxy) {truemaxy=maxy;}
+    }
+    for (itera='a'; itera<='z'; itera++) {
+      TTF_GlyphMetrics(font[it],itera,NULL,NULL,NULL,&maxy,NULL);
+      if (maxy>truemaxy) {truemaxy=maxy;}
+    }
+    underliney[it]=truemaxy;
+    printf("font %d's max y: %d\n",it,truemaxy);
   }
   window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL|SDL_WINDOW_BORDERLESS);
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
@@ -735,7 +757,7 @@ int main(int argc, char** argv) {
     /*SDL_SetRenderDrawColor(r,255,255,255,128);
     SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_ADD);
     SDL_RenderClear(r);*/
-    //SDL_SetRenderDrawColor(r,0,0,0,0);
+    SDL_SetRenderDrawColor(r,0,0,0,0);
     SDL_RenderClear(r);
     
     speed=(counter==0 && formatq.size()<1 && !nostop)?(0):(minspeed+max(0,(speedchange==0)?(0):((formatq.size())/speedchange)));
@@ -783,7 +805,8 @@ int main(int argc, char** argv) {
 	chars.erase(i);
       }
     }
-    
+    SDL_SetRenderDrawColor(r,255,255,255,255);
+    //SDL_RenderDrawLine(r,0,underliney[0]*2,1920,underliney[0]*2);
     SDL_RenderPresent(r);
     ++fc; fcdegrees=fc%360;
     pc2=pc1;

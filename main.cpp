@@ -520,6 +520,8 @@ int main(int argc, char** argv) {
   nlsep=16;
   nostop=false;
   
+  gx=0; gy=0;
+  
   // parse arguments
   for (int curarg=1; curarg<argc; curarg++) {
     if (argv[curarg][0]==SWITCH_CHAR) {
@@ -564,11 +566,11 @@ int main(int argc, char** argv) {
       if (strcmp((argv[curarg])+1,"geometry")==0) {
 	curarg++;
 	if (curarg<argc) {
-	  geometryinfo=new char[strlen(argv[curarg])];
-	  strcpy(geometryinfo,argv[curarg]);
-	  geomW=geometryinfo;
-	  geomH=strchr(geometryinfo,'x')+1;
-	  memset(strchr(geometryinfo,'x'),0,1);
+	  if (strstr(argv[curarg],"+")!=NULL) {
+	    sscanf(argv[curarg],"%dx%d+%d+%d",&gw,&gh,&gx,&gy);
+	  } else {
+	    sscanf(argv[curarg],"%dx%d",&gw,&gh);
+	  }
 	  geometryspecified=true;
 	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
@@ -620,10 +622,10 @@ int main(int argc, char** argv) {
     gw=temprect.w;
     gh=(fontsize*3)/2;
   } else {
-    gw=atoi(geomW); gh=atoi(geomH);
+    //gw=atoi(geomW); gh=atoi(geomH);
   }
   
-  willquit=false; gx=0; gy=0; fc=0; counter=4; fcdegrees=0;
+  willquit=false; fc=0; counter=4; fcdegrees=0;
   
   // width check
   if (gw<1) {

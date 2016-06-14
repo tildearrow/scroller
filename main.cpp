@@ -22,6 +22,7 @@
 #define VERSION "1.2"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <vector>
 #include <queue>
 #include <SDL2/SDL.h>
@@ -789,7 +790,7 @@ int main(int argc, char** argv) {
       color.g=i->f.g;
       color.b=i->f.b;
       color.a=255;
-      gputchar(i->x+((i->f.shake)?((random()%5)-2):(0)),((i->f.shake)?((random()%5)-2):(0)),i->f,true);
+      gputchar(i->x+((i->f.shake)?((rand()%5)-2):(0)),((i->f.shake)?((rand()%5)-2):(0)),i->f,true);
       if (i->x<-128) { // hehe
 	chars.erase(i);
       }

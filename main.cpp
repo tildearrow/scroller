@@ -694,22 +694,9 @@ int main(int argc, char** argv) {
       printf("i'm sorry but this happened while loading font: %s\n",TTF_GetError());
       return 1;
     }
-    // retrieve heights from A to Z, a to z and 0 to 9
     // this is for the underline
-    for (itera='0'; itera<='9'; itera++) {
-      TTF_GlyphMetrics(font[it],itera,NULL,NULL,NULL,&maxy,NULL);
-      if (maxy>truemaxy) {truemaxy=maxy;}
-    }
-    for (itera='A'; itera<='Z'; itera++) {
-      TTF_GlyphMetrics(font[it],itera,NULL,NULL,NULL,&maxy,NULL);
-      if (maxy>truemaxy) {truemaxy=maxy;}
-    }
-    for (itera='a'; itera<='z'; itera++) {
-      TTF_GlyphMetrics(font[it],itera,NULL,NULL,NULL,&maxy,NULL);
-      if (maxy>truemaxy) {truemaxy=maxy;}
-    }
-    underliney[it]=truemaxy;
-    printf("font %d's max y: %d\n",it,truemaxy);
+    underliney[it]=TTF_FontHeight(font[it])+TTF_FontDescent(font[it]);
+    printf("font %d's max y: %d\n",it,underliney[it]);
   }
   window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL|SDL_WINDOW_BORDERLESS);
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
@@ -806,7 +793,7 @@ int main(int argc, char** argv) {
       }
     }
     SDL_SetRenderDrawColor(r,255,255,255,255);
-    //SDL_RenderDrawLine(r,0,underliney[0]*2,1920,underliney[0]*2);
+    //SDL_RenderDrawLine(r,0,underliney[0],1920,underliney[0]);
     SDL_RenderPresent(r);
     ++fc; fcdegrees=fc%360;
     pc2=pc1;

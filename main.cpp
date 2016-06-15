@@ -33,7 +33,7 @@
 #define min(x,y) (((x)<(y))?(x):(y))
 #define max(x,y) (((x)>(y))?(x):(y))
 
-const unsigned char defaultcolors[3]={255,255,255};
+unsigned char defaultcolors[3]={255,255,255};
 unsigned char utf8seq[8];
 
 struct format {
@@ -481,7 +481,7 @@ OPTIONS:\n\
                           default is infinity (0)\n\
   %cnostop                 continue scrolling even if there is no text left\n\
   %cimage FILE             load an image for usage with escape code ^[[200+Nm\n\
-  %cdefcol R,G,B       nyi default color\n\
+  %cdefcol R,G,B           default color\n\
   %csolid  [R,G,B]     nyi no transparency\n\
   %cv                      show version\n\
 \n\
@@ -569,6 +569,12 @@ int main(int argc, char** argv) {
 	curarg++;
 	if (curarg<argc) {
 	maxspeed=atoi(argv[curarg]);
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"defcol")==0) {
+	curarg++;
+	if (curarg<argc) {
+	sscanf(argv[curarg],"%d,%d,%d",&defaultcolors[0],&defaultcolors[1],&defaultcolors[2]);
 	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"geometry")==0) {
@@ -678,9 +684,9 @@ int main(int argc, char** argv) {
   colorsB[4]=187; // blue too
   colorsB[6]=202; // dark cyan has higher blue
 
-  curformat.r=255;
-  curformat.g=255;
-  curformat.b=255;
+  curformat.r=defaultcolors[0];
+  curformat.g=defaultcolors[1];
+  curformat.b=defaultcolors[2];
   curformat.cf=0;
   curformat.command=COMMAND_TEXT;
   curformat.underline=0;

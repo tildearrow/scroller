@@ -56,8 +56,10 @@ SDL_Rect** texcacher;
 
 #ifdef _WIN32
 #define SWITCH_CHAR '/'
+#define helparg "/?"
 #else
 #define SWITCH_CHAR '-'
+#define helparg "--help"
 #endif
 
 #define EXTREME_QUALITY_OUTLINE
@@ -477,24 +479,35 @@ static int inthread(void* ptr) {
   return 0;
 }
 
+void failusage(const char* programname) {
+  printf("\
+usage: %s [OPTIONS]... FONTFILE [FONT2FILE]...\n\
+type '%s %s' for more information.\n\
+",programname,programname,helparg);
+}
+
 void usage(const char* programname) {
   printf("\
 usage: %s [OPTIONS]... FONTFILE [FONT2FILE]...\n\
 creates a window which scrolls text being fed to stdin.\n\
 best used with a pipe.\n\
 \n\
-OPTIONS:\n\
+FONT OPTIONS:\n\
   %cfs FONTSIZE            defines a custom font size.\n\
                           if this is not defined, a value of 20 will be used\n\
 			  as default.\n\
-  %cns SIZE                defines a custom line separator size.\n\
-                          if this is not defined, a value of 16 will be used.\n\
+  %cindex INDEX,[INDEX]... selects font indexes on font collections (.ttc,\n\
+	                  .fon, etc.).\n\
+  %cdefcol R,G,B           default color\n\
+\n\
+WINDOW OPTIONS:\n\
   %cgeometry GEOMETRY      defines window size and placement.\n\
                           it follows the same format as used in X base\n\
                           applications:\n\
                              WIDTHxHEIGHT+X+Y\n\
-  %cindex INDEX,[INDEX]... selects font indexes on font collections (.ttc,\n\
-	                  .fon, etc.).\n\
+  %csolid  [R,G,B]     nyi no transparency\n\
+\n\
+SCROLL CONTROL:\n\
   %cms SPEED               minimum speed\n\
                           default is 3\n\
   %cmsc SPEED              minimum amount of characters in queue in order to\n\
@@ -504,16 +517,25 @@ OPTIONS:\n\
                           default is 20\n\
   %cMs SPEED               maximum speed\n\
                           default is infinity (0)\n\
-  %ccat                    write stdin to stdout\n\
+  %cns SIZE                defines a custom line separator size.\n\
+                          if this is not defined, a value of 16 will be used.\n\
   %cnostop                 continue scrolling even if there is no text left\n\
+\n\
+OUTPUT CONTROL:\n\
+  %ccat                    write stdin to stdout\n\
+\n\
+IMAGE OPTIONS:\n\
   %cimage FILE             load an image for usage with escape code ^[[Nw\n\
-  %cdefcol R,G,B           default color\n\
-  %csolid  [R,G,B]     nyi no transparency\n\
-  %cv                      show version\n\
+\n\
+MISC.:\n\
+  %cv, %c-version, %cver     show version\n\
+  %c?, %c-help, %chelp       show this help\n\
 \n\
 written by tildearrow, licensed under MIT License.\
 \n",programname,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,
-SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR);
+SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,
+SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,
+SWITCH_CHAR,SWITCH_CHAR);
 }
 
 void about() {
@@ -631,8 +653,12 @@ int main(int argc, char** argv) {
 	curarg++;
 	imagearg.push(curarg);
       } else
-      if (strcmp((argv[curarg])+1,"v")==0) {
+      if (strcmp((argv[curarg])+1,"v")==0 || strcmp((argv[curarg])+1,"-version")==0 || strcmp((argv[curarg])+1,"ver")==0) {
 	about();
+	return 0;
+      } else
+      if (strcmp((argv[curarg])+1,"?")==0 || strcmp((argv[curarg])+1,"-help")==0 || strcmp((argv[curarg])+1,"help")==0) {
+	usage(argv[0]);
 	return 0;
       }
     } else {
@@ -641,7 +667,7 @@ int main(int argc, char** argv) {
   }
   
   if (fontarg.size()==0) {
-    usage(argv[0]);
+    failusage(argv[0]);
     return 1;
   }
   

@@ -506,7 +506,7 @@ OPTIONS:\n\
                           default is infinity (0)\n\
   %ccat                    write stdin to stdout\n\
   %cnostop                 continue scrolling even if there is no text left\n\
-  %cimage FILE             load an image for usage with escape code ^[[200+Nm\n\
+  %cimage FILE             load an image for usage with escape code ^[[Nw\n\
   %cdefcol R,G,B           default color\n\
   %csolid  [R,G,B]     nyi no transparency\n\
   %cv                      show version\n\

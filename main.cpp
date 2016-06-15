@@ -38,8 +38,9 @@ unsigned char utf8seq[8];
 
 struct format {
   unsigned char r, g, b;
-  bool bold, italic, underline, stroke, conceal, shake, negative;
+  bool bold, italic, stroke, conceal, shake, negative;
   int blink, ci, cf;
+  bool underline;
   int c;
   int command, value;
 };
@@ -66,7 +67,12 @@ struct gchar {
   format f;
 };
 
+struct gline {
+  int x, y, size;
+};
+
 std::vector<gchar> chars;
+std::vector<gline> lines;
 //std::queue<int> charq;
 std::queue<format> formatq;
 int gx, gy, gw, gh;
@@ -676,7 +682,8 @@ int main(int argc, char** argv) {
   curformat.b=255;
   curformat.cf=0;
   curformat.command=COMMAND_TEXT;
-  
+  curformat.underline=0;
+
   // font init
 
   TTF_Init();
@@ -781,7 +788,24 @@ int main(int argc, char** argv) {
       if (speed>0) {
 	for (int i=0; i<chars.size(); i++) {
 	  chars[i].x-=1;
+          //lines[i].x-=1;
+          /*if (chars.end()->f.underline) {
+            lines.end()->size+=1;
+          }*/
 	}
+        for (int i=0; i<lines.size(); i++) {
+          lines[i].x-=1;
+        }
+        if (chars.size()!=0) {
+          if (chars.end()->f.underline) {
+            if (!chars[chars.size()-1].f.underline) {
+              lines.resize(lines.size()+1);
+              lines.end()->x=gw;
+            } else {
+              lines.end()->size++;
+            }
+          }
+        }
       }
     }
     for (std::vector<gchar>::iterator i=chars.begin(); i!=chars.end(); i++) {
@@ -796,7 +820,9 @@ int main(int argc, char** argv) {
       }
     }
     SDL_SetRenderDrawColor(r,255,255,255,255);
-    //SDL_RenderDrawLine(r,0,underliney[0],1920,underliney[0]);
+    for (std::vector<gline>::iterator i=lines.begin(); i!=lines.end(); i++) {
+      SDL_RenderDrawLine(r,i->x,i->y,i->x+i->size,i->y);
+    }
     SDL_RenderPresent(r);
     ++fc; fcdegrees=fc%360;
     pc2=pc1;

@@ -180,7 +180,7 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
   reeect.y=y-1;
   reeect.w=texcacher[fff.cf][fff.c].w;
   reeect.h=texcacher[fff.cf][fff.c].h;
-  if (actuallyrender) {
+  if (actuallyrender && !fff.conceal) {
     SDL_SetTextureColorMod(texcache[fff.cf][fff.c],color.r,color.g,color.b);
     SDL_SetTextureAlphaMod(texcache[fff.cf][fff.c],(fff.blink)?((int)(127+(sin(((double)fcdegrees*(double)fff.blink*3.14159265358979323846264338327950)/180.0)*127))):(255));
     SDL_RenderCopy(r,texcache[fff.cf][fff.c],&texcacher[fff.cf][fff.c],&reeect);
@@ -210,6 +210,7 @@ static int inthread(void* ptr) {
     } else {
       if (chaar==0x1b) {
 	chaar=getchar();
+	if (catmode) {putchar(chaar);}
 	switch (chaar) {
 	  case '[':
 	    getout=false;
@@ -218,6 +219,7 @@ static int inthread(void* ptr) {
             formatlist[0]=0;
             while (!getout) {
               chaaar=getchar();
+	      if (catmode) {putchar(chaaar);}
               switch (chaaar) {
                 case '0':
                 case '1':
@@ -385,56 +387,77 @@ static int inthread(void* ptr) {
             // UTF-8
             utf8seq[0]=chaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[1]=chaaar;
           } else if (chaar<0xf0) {
             utf8seq[0]=chaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[1]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[2]=chaaar;
           } else if (chaar<0xf8) {
             utf8seq[0]=chaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[1]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[2]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[3]=chaaar;
           } else if (chaar<0xfc) {
             utf8seq[0]=chaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[1]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[2]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[3]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[4]=chaaar;
           } else if (chaar<0xfd) {
             utf8seq[0]=chaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[1]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[2]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[3]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[4]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[5]=chaaar;
           } else if (chaar<0xff) {
             utf8seq[0]=chaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[1]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[2]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[3]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[4]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[5]=chaaar;
             chaaar=getchar();
+	    if (catmode) {putchar(chaaar);}
             utf8seq[6]=chaaar;
           } else {
             printf("what are you doing?\n");

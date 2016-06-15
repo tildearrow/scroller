@@ -99,6 +99,7 @@ SDL_Texture* textt;
 SDL_Texture* textfinal;
 SDL_Texture** image;
 SDL_Rect* irect;
+SDL_Rect temprect1;
 SDL_Thread* thread;
 TTF_Font** font;
 int* underliney;
@@ -776,6 +777,21 @@ int main(int argc, char** argv) {
 	  if (formatq.size()==0) {
 	    counter=nlsep;
 	  }
+	  if (chars.size()!=0) {
+	    if (chars[chars.size()-1].f.underline) {
+	      if (chars.size()==1) {
+		lines.resize(lines.size()+1);
+		lines[lines.size()-1].x=gw;
+		lines[lines.size()-1].y=underliney[0];
+		lines[lines.size()-1].size=0;
+	      } else if (!chars[chars.size()-2].f.underline) {
+		lines.resize(lines.size()+1);
+		lines[lines.size()-1].x=gw;
+		lines[lines.size()-1].y=underliney[0];
+		lines[lines.size()-1].size=0;
+	      }
+	    }
+	  }
 	  // is the counter negative?
 	  if (counter<0) {
 	    chars[chars.size()-1].x+=counter;
@@ -797,15 +813,10 @@ int main(int argc, char** argv) {
           lines[i].x-=1;
         }
         if (chars.size()!=0) {
-          if (chars.end()->f.underline) {
-            if (!chars[chars.size()-1].f.underline) {
-              lines.resize(lines.size()+1);
-              lines.end()->x=gw;
-            } else {
-              lines.end()->size++;
-            }
-          }
-        }
+	  if (chars[chars.size()-1].f.underline) {
+	    lines[lines.size()-1].size++;
+	  }
+	}
       }
     }
     for (std::vector<gchar>::iterator i=chars.begin(); i!=chars.end(); i++) {
@@ -819,8 +830,14 @@ int main(int argc, char** argv) {
 	chars.erase(i);
       }
     }
-    SDL_SetRenderDrawColor(r,255,255,255,255);
+    
     for (std::vector<gline>::iterator i=lines.begin(); i!=lines.end(); i++) {
+      SDL_SetRenderDrawColor(r,0,0,0,255);
+      SDL_RenderDrawLine(r,i->x-1,(i->y)-1,i->x+i->size+1,i->y-1);
+      SDL_RenderDrawLine(r,i->x-1,(i->y)+1,i->x+i->size+1,i->y+1);
+      SDL_RenderDrawPoint(r,i->x-1,i->y);
+      SDL_RenderDrawPoint(r,i->x+i->size+1,i->y);
+      SDL_SetRenderDrawColor(r,255,255,255,255);
       SDL_RenderDrawLine(r,i->x,i->y,i->x+i->size,i->y);
     }
     SDL_RenderPresent(r);

@@ -84,6 +84,7 @@ int fi;
 int nlsep;
 int counter;
 int popped;
+int catmode;
 std::queue<int> fontarg;
 std::queue<int> imagearg;
 format poppedformat;
@@ -201,6 +202,7 @@ static int inthread(void* ptr) {
   std::vector<int> formatlist;
   while (true) {
     chaar=getchar();
+    if (catmode) {putchar(chaar);}
     if (chaar=='\n') {
       //charq.push(' ');
       curformat.c=' ';
@@ -479,6 +481,7 @@ OPTIONS:\n\
                           default is 20\n\
   %cMs SPEED               maximum speed\n\
                           default is infinity (0)\n\
+  %ccat                    write stdin to stdout\n\
   %cnostop                 continue scrolling even if there is no text left\n\
   %cimage FILE             load an image for usage with escape code ^[[200+Nm\n\
   %cdefcol R,G,B           default color\n\
@@ -527,6 +530,7 @@ int main(int argc, char** argv) {
   minspeed=3; minspeedchange=20; speedchange=20; maxspeed=0;
   nlsep=16;
   nostop=false;
+  catmode=false;
   
   gx=0; gy=0;
   
@@ -596,6 +600,9 @@ int main(int argc, char** argv) {
       } else
       if (strcmp((argv[curarg])+1,"nostop")==0) {
 	nostop=true;
+      } else
+      if (strcmp((argv[curarg])+1,"cat")==0) {
+	catmode=true;
       } else
       if (strcmp((argv[curarg])+1,"image")==0) {
 	curarg++;

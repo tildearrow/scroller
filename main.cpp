@@ -83,6 +83,7 @@ int pc1, pc2;
 int fc;
 int fcdegrees;
 int fi;
+int br, fbr;
 int nlsep;
 int counter;
 int popped;
@@ -284,10 +285,10 @@ static int inthread(void* ptr) {
 		    curformat.underline=1;
 		    break;
 		  case 5:
-		    curformat.blink=4;
+		    curformat.blink=br;
 		    break;
 		  case 6:
-		    curformat.blink=20;
+		    curformat.blink=fbr;
 		    break;
 		  case 7:
 		    curformat.negative=1;
@@ -527,6 +528,10 @@ OUTPUT CONTROL:\n\
 IMAGE OPTIONS:\n\
   %cimage FILE             load an image for usage with escape code ^[[Nw\n\
 \n\
+ESCAPE SEQUENCE CONTROL:\n\
+  %cbr RATE                set blink rate (in blinks per 360 frames)\n\
+  %cfbr RATE               set fast blink rate (in blinks per 360 frames)\n\
+\n\
 MISC.:\n\
   %cv, %c-version, %cver     show version\n\
   %c?, %c-help, %chelp       show this help\n\
@@ -576,6 +581,7 @@ int main(int argc, char** argv) {
   nlsep=16;
   nostop=false;
   catmode=false;
+  br=4; fbr=20;
   
   gx=0; gy=0;
   
@@ -641,6 +647,18 @@ int main(int argc, char** argv) {
 	curarg++;
 	if (curarg<argc) {
 	fi=atoi(argv[curarg]);
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"br")==0) {
+	curarg++;
+	if (curarg<argc) {
+	br=atoi(argv[curarg]);
+	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"fbr")==0) {
+	curarg++;
+	if (curarg<argc) {
+	fbr=atoi(argv[curarg]);
 	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"nostop")==0) {

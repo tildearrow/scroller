@@ -88,6 +88,7 @@ int nlsep;
 int counter;
 int popped;
 int catmode;
+bool wborder;
 std::queue<int> fontarg;
 std::queue<int> imagearg;
 format poppedformat;
@@ -507,6 +508,7 @@ WINDOW OPTIONS:\n\
                           applications:\n\
                              WIDTHxHEIGHT+X+Y\n\
   %csolid  [R,G,B]     nyi no transparency\n\
+  %cborder                 enable window border\n\
 \n\
 SCROLL CONTROL:\n\
   %cms SPEED               minimum speed\n\
@@ -581,6 +583,7 @@ int main(int argc, char** argv) {
   nlsep=16;
   nostop=false;
   catmode=false;
+  wborder=false;
   br=4; fbr=20;
   
   gx=0; gy=0;
@@ -666,6 +669,9 @@ int main(int argc, char** argv) {
       } else
       if (strcmp((argv[curarg])+1,"cat")==0) {
 	catmode=true;
+      } else
+      if (strcmp((argv[curarg])+1,"border")==0) {
+	wborder=true;
       } else
       if (strcmp((argv[curarg])+1,"image")==0) {
 	curarg++;
@@ -789,7 +795,11 @@ int main(int argc, char** argv) {
     underliney[it]=TTF_FontHeight(font[it])+TTF_FontDescent(font[it]);
     printf("font %d's max y: %d\n",it,underliney[it]);
   }
-  window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL|SDL_WINDOW_BORDERLESS);
+  if (wborder) {
+    window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL);
+  } else {
+    window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL|SDL_WINDOW_BORDERLESS);
+  }
   r=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
   
   // image init

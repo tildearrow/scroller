@@ -793,7 +793,7 @@ int main(int argc, char** argv) {
     }
     // this is for the underline
     underliney[it]=TTF_FontHeight(font[it])+TTF_FontDescent(font[it]);
-    printf("font %d's max y: %d\n",it,underliney[it]);
+    //printf("font %d's max y: %d\n",it,underliney[it]);
   }
   if (wborder) {
     window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL);

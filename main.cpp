@@ -371,7 +371,7 @@ static int inthread(void* ptr) {
 		    curformat.b=defaultcolors[2];
 		    break;
 		  default:
-		    printf("new format, %d\n",formatlist[ok]);
+		    fprintf(stderr,"new format, %d\n",formatlist[ok]);
 		    break;
 	      }
 	    }
@@ -464,7 +464,7 @@ static int inthread(void* ptr) {
 	    if (catmode) {putchar(chaaar);}
             utf8seq[6]=chaaar;
           } else {
-            printf("what are you doing?\n");
+            fprintf(stderr,"what are you doing?\n");
           }
           utf8_decode_init(utf8seq,8);
 	  curformat.c=utf8_decode_next();
@@ -482,7 +482,7 @@ static int inthread(void* ptr) {
 }
 
 void failusage(const char* programname) {
-  printf("\
+  fprintf(stderr,"\
 usage: %s [OPTIONS]... FONTFILE [FONT2FILE]...\n\
 type '%s %s' for more information.\n\
 ",programname,programname,helparg);
@@ -596,44 +596,44 @@ int main(int argc, char** argv) {
 	curarg++;
 	if (curarg<argc) {
 	nlsep=atoi(argv[curarg]);
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"fs")==0) {
 	curarg++;
 	if (curarg<argc) {
 	fontsize=atoi(argv[curarg]);
 	fsspecified=true;
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"ms")==0) {
 	curarg++;
 	if (curarg<argc) {
 	minspeed=atoi(argv[curarg]);
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"msc")==0) {
 	curarg++;
 	if (curarg<argc) {
 	minspeedchange=atoi(argv[curarg]);
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"sc")==0) {
 	curarg++;
 	if (curarg<argc) {
 	speedchange=atoi(argv[curarg]);
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"Ms")==0) {
 	curarg++;
 	if (curarg<argc) {
 	maxspeed=atoi(argv[curarg]);
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"defcol")==0) {
 	curarg++;
 	if (curarg<argc) {
 	sscanf(argv[curarg],"%d,%d,%d",&defaultcolors[0],&defaultcolors[1],&defaultcolors[2]);
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"geometry")==0) {
 	curarg++;
@@ -644,25 +644,25 @@ int main(int argc, char** argv) {
 	    sscanf(argv[curarg],"%dx%d",&gw,&gh);
 	  }
 	  geometryspecified=true;
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"index")==0) {
 	curarg++;
 	if (curarg<argc) {
 	fi=atoi(argv[curarg]);
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"br")==0) {
 	curarg++;
 	if (curarg<argc) {
 	br=atoi(argv[curarg]);
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"fbr")==0) {
 	curarg++;
 	if (curarg<argc) {
 	fbr=atoi(argv[curarg]);
-	} else {printf("%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
       if (strcmp((argv[curarg])+1,"nostop")==0) {
 	nostop=true;
@@ -706,12 +706,12 @@ int main(int argc, char** argv) {
     int displays;
     displays=SDL_GetNumVideoDisplays();
     if (displays!=1) {
-      printf("%d displays detected, using first one\n",displays);
+      fprintf(stderr,"%d displays detected, using first one\n",displays);
     }
     int dbresult;
     dbresult=SDL_GetDisplayBounds(0,&temprect);
     if (dbresult==-1) {
-      printf("i'm sorry, but something happened getting display bounds.\n");
+      fprintf(stderr,"i'm sorry, but something happened getting display bounds.\n");
     }
     gw=temprect.w;
     gh=(fontsize*3)/2;
@@ -724,10 +724,10 @@ int main(int argc, char** argv) {
   // width check
   if (gw<1) {
     if (geometryspecified) {
-      printf("i'm sorry, but invalid width.\n");
+      fprintf(stderr,"i'm sorry, but invalid width.\n");
       return 1;
     } else {
-      printf("i'm sorry, but your screen is way too small for this program (%d width).\n",gw);
+      fprintf(stderr,"i'm sorry, but your screen is way too small for this program (%d width).\n",gw);
       return 1;
     }
   }
@@ -788,7 +788,7 @@ int main(int argc, char** argv) {
     font[it]=TTF_OpenFontIndex(argv[fontarg.front()],fontsize,fi);
     fontarg.pop();
     if (!font[it]) {
-      printf("i'm sorry but this happened while loading font: %s\n",TTF_GetError());
+      fprintf(stderr,"i'm sorry but this happened while loading font: %s\n",TTF_GetError());
       return 1;
     }
     // this is for the underline
@@ -814,7 +814,7 @@ int main(int argc, char** argv) {
     tempsurface=IMG_Load(argv[imagearg.front()]);
     imagearg.pop();
     if (tempsurface==NULL) {
-      printf("error while reading image: %s\n",IMG_GetError());
+      fprintf(stderr,"error while reading image: %s\n",IMG_GetError());
       return 1;
     }
     irect[iter]=tempsurface->clip_rect;

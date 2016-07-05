@@ -917,7 +917,7 @@ int main(int argc, char** argv) {
       color.a=255;
       gputchar(i->x+((i->f.shake)?((rand()%5)-2):(0)),((i->f.shake)?((rand()%5)-2):(0)),i->f,true);
       if (i->x<-128) { // hehe
-	chars.erase(i);
+	chars.erase(i); if (chars.size()==0) {break;}
       }
     }
     

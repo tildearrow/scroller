@@ -929,6 +929,9 @@ int main(int argc, char** argv) {
       SDL_RenderDrawPoint(r,i->x+i->size+1,i->y);
       SDL_SetRenderDrawColor(r,255,255,255,255);
       SDL_RenderDrawLine(r,i->x,i->y,i->x+i->size,i->y);
+      if (i->x<(-(i->size))) {
+	lines.erase(i); if (lines.size()==0) {break;}
+      }
     }
     SDL_RenderPresent(r);
     ++fc; fcdegrees=fc%360;

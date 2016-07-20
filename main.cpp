@@ -23,8 +23,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <string.h>
 #include <vector>
 #include <queue>
+
+#define SDL_MAIN_HANDLED
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>

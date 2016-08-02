@@ -95,6 +95,7 @@ int popped;
 int catmode;
 bool wborder;
 std::queue<int> fontarg;
+std::queue<int> ffontarg;
 std::queue<int> imagearg;
 format poppedformat;
 int speed, minspeed, minspeedchange, speedchange, maxspeed;
@@ -488,18 +489,21 @@ static int inthread(void* ptr) {
 
 void failusage(const char* programname) {
   fprintf(stderr,"\
-usage: %s [OPTIONS]... FONTFILE [FONT2FILE]...\n\
+usage: %s -font FONTFILE [OPTIONS]...\n\
 type '%s %s' for more information.\n\
 ",programname,programname,helparg);
 }
 
 void usage(const char* programname) {
   printf("\
-usage: %s [OPTIONS]... FONTFILE [FONT2FILE]...\n\
+usage: %s -font FONTFILE [OPTIONS]...\n\
 creates a window which scrolls text being fed to stdin.\n\
 best used with a pipe.\n\
 \n\
 FONT OPTIONS:\n\
+  %cfont FONTFILE          defines a font.\n\
+  %cfallback FONTFILE      defines a font which will be used if a character is\n\
+                          not available in current font.\n\
   %cfs FONTSIZE            defines a custom font size.\n\
                           if this is not defined, a value of 20 will be used\n\
 			  as default.\n\
@@ -669,6 +673,18 @@ int main(int argc, char** argv) {
 	fbr=atoi(argv[curarg]);
 	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
       } else
+      if (strcmp((argv[curarg])+1,"font")==0) {
+	curarg++;
+	if (curarg<argc) {
+	fontarg.push(curarg);
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
+      if (strcmp((argv[curarg])+1,"fallback")==0) {
+	curarg++;
+	if (curarg<argc) {
+	ffontarg.push(curarg);
+	} else {fprintf(stderr,"%s requires an argument\n",argv[curarg-1]); usage(argv[0]);}
+      } else
       if (strcmp((argv[curarg])+1,"nostop")==0) {
 	nostop=true;
       } else
@@ -691,7 +707,7 @@ int main(int argc, char** argv) {
 	return 0;
       }
     } else {
-      fontarg.push(curarg);
+      // umm
     }
   }
   

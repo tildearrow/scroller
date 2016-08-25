@@ -120,6 +120,8 @@ bool willquit;
 bool nostop;
 char* geometryinfo;
 char* geomX, *geomY, *geomW, *geomH;
+int t1, t2;
+bool profile;
 
 int gputchar(int x, int y, format fff, bool actuallyrender) {
   if (fff.command==COMMAND_IMAGE) {
@@ -135,7 +137,12 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
   int minx, maxx, advance;
   if (!texcached[fff.cf][fff.c]) {
     texcached[fff.cf][fff.c]=true;
+    t1=SDL_GetPerformanceCounter();
     texts=TTF_RenderGlyph_Blended(font[fff.cf],fff.c,color);
+    t2=SDL_GetPerformanceCounter();
+    if (profile) {
+      fprintf(stderr,"time for character 0x%x: %d/%ds\n",fff.c,(t2-t1),(SDL_GetPerformanceFrequency()));
+    }
     if (texts==NULL) {
       fprintf(stderr,"error while rendering character 0x%x\n",fff.c);
       texcached[fff.cf][fff.c]=false;
@@ -544,11 +551,13 @@ ESCAPE SEQUENCE CONTROL:\n\
   %cfbr RATE               set fast blink rate (in blinks per 360 frames)\n\
 \n\
 MISC.:\n\
+  %cprofile                print character draw times to stderr\n\
   %cv, %c-version, %cver     show version\n\
   %c?, %c-help, %chelp       show this help\n\
 \n\
 written by tildearrow, licensed under MIT License.\
 \n",programname,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,
+SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,
 SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,
 SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,SWITCH_CHAR,
 SWITCH_CHAR,SWITCH_CHAR);
@@ -593,6 +602,7 @@ int main(int argc, char** argv) {
   nostop=false;
   catmode=false;
   wborder=false;
+  profile=false;
   br=4; fbr=20;
   
   gx=0; gy=0;
@@ -693,6 +703,9 @@ int main(int argc, char** argv) {
       } else
       if (strcmp((argv[curarg])+1,"border")==0) {
 	wborder=true;
+      } else
+      if (strcmp((argv[curarg])+1,"profile")==0) {
+	profile=true;
       } else
       if (strcmp((argv[curarg])+1,"image")==0) {
 	curarg++;

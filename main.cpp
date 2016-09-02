@@ -113,6 +113,8 @@ SDL_Rect* irect;
 SDL_Rect temprect1;
 SDL_Thread* thread;
 TTF_Font** font;
+TTF_Font** ffont;
+int ffonts;
 int* underliney;
 SDL_Rect reeect;
 SDL_Color color={255,255,255,255};
@@ -138,10 +140,28 @@ int gputchar(int x, int y, format fff, bool actuallyrender) {
   if (!texcached[fff.cf][fff.c]) {
     texcached[fff.cf][fff.c]=true;
     t1=SDL_GetPerformanceCounter();
-    texts=TTF_RenderGlyph_Blended(font[fff.cf],fff.c,color);
+    if (!TTF_GlyphIsProvided(font[fff.cf],fff.c)) {
+      bool success;
+      fprintf(stderr,"sorry. try render with fallback\n");
+      success=false;
+      for (int ffi=0; ffi<ffonts; ffi++) {
+        if (TTF_GlyphIsProvided(ffont[ffi],fff.c)) {
+          texts=TTF_RenderGlyph_Blended(ffont[ffi],fff.c,color);
+          success=true;
+          break;
+        }
+      }
+      if (!success) {
+        // render anyway.
+        fprintf(stderr,"can't\n");
+        texts=TTF_RenderGlyph_Blended(font[fff.cf],fff.c,color);
+      }
+    } else {
+      texts=TTF_RenderGlyph_Blended(font[fff.cf],fff.c,color);
+    }
     t2=SDL_GetPerformanceCounter();
     if (profile) {
-      fprintf(stderr,"time for character 0x%x: %d/%ds\n",fff.c,(t2-t1),(SDL_GetPerformanceFrequency()));
+      fprintf(stderr,"time for character 0x%x: %d/%lus\n",fff.c,(t2-t1),(SDL_GetPerformanceFrequency()));
     }
     if (texts==NULL) {
       fprintf(stderr,"error while rendering character 0x%x\n",fff.c);
@@ -810,8 +830,11 @@ int main(int argc, char** argv) {
   TTF_Init();
   
   font=new TTF_Font*[fontarg.size()];
+  ffont=new TTF_Font*[ffontarg.size()];
+  ffonts=ffontarg.size();
   int it;
   int itera;
+  int iterator;
   int fontargsize;
   fontargsize=fontarg.size();
   underliney=new int[fontargsize];
@@ -828,6 +851,14 @@ int main(int argc, char** argv) {
     // this is for the underline
     underliney[it]=TTF_FontHeight(font[it])+TTF_FontDescent(font[it]);
     //printf("font %d's max y: %d\n",it,underliney[it]);
+  }
+  for (iterator=0; iterator<ffonts; iterator++) {
+    ffont[iterator]=TTF_OpenFontIndex(argv[ffontarg.front()],fontsize,fi);
+    ffontarg.pop();
+    if (!ffont[iterator]) {
+      fprintf(stderr,"i'm sorry but this happened while loading font: %s\n",TTF_GetError());
+      return 1;
+    }
   }
   if (wborder) {
     window=SDL_CreateWindow("scroller",gx,gy,gw,gh,SDL_WINDOW_OPENGL);
